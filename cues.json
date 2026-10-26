@@ -1,0 +1,22 @@
+{
+  "tableaux": [
+    {
+      "name": "Tableau 1 — Ambiance vent",
+      "ambiance": "ambiance-vent.mp3",
+      "ambVolume": 30,
+      "songs": [
+        { "name": "Accord de do (ouverture)", "file": "morceau-accord-do.mp3", "ambUnder": false, "fadeOut": 4 },
+        { "name": "Accord de la", "file": "morceau-accord-la.mp3", "fadeIn": 2, "fadeOut": 6, "noAmbAfter": true }
+      ]
+    },
+    {
+      "name": "Tableau 2 — Ambiance café",
+      "ambiance": "ambiance-cafe.mp3",
+      "ambVolume": 50,
+      "songs": [
+        { "name": "Accord de la (entrée)", "file": "morceau-accord-la.mp3", "fadeIn": 5, "ambUnder": false },
+        { "name": "Accord de do (extrait coupé à 8 s)", "file": "morceau-accord-do.mp3", "endAt": 8, "fadeOut": 2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+chorus-comedy-life
+Copyright 2026 Anthony Hunt
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Documentation and text are licensed under the Creative Commons Attribution 4.0
+International license (see LICENSE-docs).
+
+The audio files in sons/ are synthetic sounds generated with ffmpeg for this repository
+(sine tones and filtered noise); they are licensed under CC BY 4.0 (see LICENSE-docs).
+No third-party audio, image or font is included. ffmpeg is used as a separate program (not redistributed).

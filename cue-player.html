@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Chorus Comedy Life — Régie son</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html {
+    background: #0a0a0f;
+  }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: transparent;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+  .splash-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 20%, #23233a 0%, #0a0a0f 70%);
+    z-index: -1;
+    opacity: 0.6;
+  }
+
+
+  /* ─── Sticky Footer Bar ─── */
+  .footer-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #111118;
+    border-top: 1px solid #333;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 100;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.5);
+  }
+  .footer-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .footer-divider {
+    width: 1px;
+    height: 28px;
+    background: #333;
+    margin: 0 4px;
+  }
+  .footer-label {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .gbtn {
+    border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+    padding: 7px 18px; font-size: 13px; transition: all 0.12s;
+  }
+  .gbtn:active { transform: scale(0.95); }
+  .gbtn-play { background: #1a3a1a; color: #6c6; }
+  .gbtn-play:hover { background: #2a5a2a; }
+  .gbtn-pause { background: #2a2a1a; color: #cc6; }
+  .gbtn-pause:hover { background: #3a3a2a; }
+  .gbtn-stop { background: #3a1a1a; color: #c66; }
+  .gbtn-stop:hover { background: #5a2a2a; }
+  .gbtn-amb { background: #0f1a2a; color: #6ac; }
+  .gbtn-amb:hover { background: #1a2a3a; }
+  .gbtn-amb-stop { background: #1a1a2a; color: #86a; }
+  .gbtn-amb-stop:hover { background: #2a2030; }
+
+  /* ─── Status Bar ─── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #1a1a22;
+    transition: background 0.3s, color 0.3s;
+    flex-shrink: 0;
+    min-height: 30px;
+  }
+  .status-bar.status-stopped { background: #111115; color: #555; }
+  .status-bar.status-playing { background: #0f1a0f; color: #6c6; }
+  .status-bar.status-fading { background: #1a1a0f; color: #cc6; }
+  .status-bar.status-ambiance { background: #0f1a18; color: #4a8; }
+  .status-bar.status-paused { background: #1a1510; color: #a86; }
+  .status-bar.status-loading { background: #0f0f1a; color: #68b; }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .status-stopped .status-dot { background: #444; }
+  .status-playing .status-dot { background: #6c6; animation: pulse 1.5s infinite; }
+  .status-fading .status-dot { background: #cc6; animation: pulse 0.6s infinite; }
+  .status-ambiance .status-dot { background: #4a8; animation: pulse 2s infinite; }
+  .status-paused .status-dot { background: #a86; }
+  .status-loading .status-dot { background: #68b; animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .status-text { flex: 1; }
+  .status-detail { font-weight: 400; color: inherit; opacity: 0.7; font-size: 11px; }
+
+  /* ─── Loading Overlay ─── */
+  .loading-bar {
+    padding: 0 20px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #1a1a22;
+    background: rgba(13,13,22,0.75);
+    transition: max-height 0.4s, padding 0.4s, opacity 0.4s;
+    max-height: 60px;
+    overflow: hidden;
+  }
+  .loading-bar.hidden {
+    max-height: 0;
+    padding: 0 20px;
+    opacity: 0;
+    border-bottom: none;
+  }
+  .loading-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+  .loading-text { font-size: 11px; color: #68b; white-space: nowrap; flex-shrink: 0; }
+  .loading-track {
+    flex: 1; height: 4px; background: #1a1a28; border-radius: 2px; overflow: hidden;
+  }
+  .loading-fill {
+    height: 100%; background: linear-gradient(90deg, #468, #68b); border-radius: 2px;
+    width: 0%; transition: width 0.3s;
+  }
+  .loading-pct { font-size: 10px; color: #557; width: 36px; text-align: right; flex-shrink: 0; }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding-bottom: 56px; /* space for sticky footer */
+  }
+
+  /* ─── Liste ─── */
+  .cue-list {
+    flex: 1;
+    background: rgba(13,13,20,0.75);
+    overflow-y: auto;
+  }
+  .cue-list::-webkit-scrollbar { width: 6px; }
+  .cue-list::-webkit-scrollbar-track { background: transparent; }
+  .cue-list::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  .tableau-header {
+    padding: 10px 14px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #1a1a22;
+    position: sticky;
+    top: 0;
+    background: #0d0d14;
+    z-index: 2;
+  }
+  .tableau-header.t1 { color: #6b6; }
+  .tableau-header.t2 { color: #68b; }
+
+  /* Song row */
+  .song-row {
+    padding: 5px 12px;
+    border-bottom: 1px solid #1a1a22;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    transition: background 0.15s;
+    min-height: 38px;
+    flex-wrap: wrap;
+  }
+  .song-row.selected { background: #1a1a10; border-left: 3px solid #cc6; }
+  .song-row.active { background: #1a2a1a; border-left: 3px solid #6c6; }
+  .song-row.fading { background: #1a1a0f; border-left: 3px solid #cc6; }
+
+  .song-num { width: 20px; text-align: center; font-size: 11px; color: #555; flex-shrink: 0; }
+  .song-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+  /* Status badges */
+  .badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 2px 6px; border-radius: 3px; flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .badge-fading { background: #332b0f; color: #cc6; }
+  .badge-playing { background: #0f2a0f; color: #6c6; }
+  .badge-paused { background: #2a1f0f; color: #a86; }
+
+  .cache-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: #333;
+    transition: background 0.3s;
+  }
+  .cache-dot.cached { background: #4a7; }
+
+  /* Inline progress per song — always visible */
+  .song-progress {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0 2px 28px;
+  }
+  .sp-bar {
+    flex: 1;
+    height: 8px;
+    background: #1a1a25;
+    border-radius: 4px;
+    cursor: grab;
+    position: relative;
+  }
+  .sp-bar:active { cursor: grabbing; }
+  .sp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4c8, #4a7);
+    width: 0%;
+    border-radius: 3px;
+    pointer-events: none;
+    position: absolute; top: 0; left: 0;
+  }
+  .song-row.fading .sp-fill {
+    background: linear-gradient(90deg, #cc6, #a84);
+  }
+  /* Fade zones on progress bar */
+  .fade-zone {
+    position: absolute; top: 0; height: 100%;
+    pointer-events: none;
+    border-radius: 3px;
+  }
+  .fade-zone-in {
+    left: 0;
+    background: rgba(70, 130, 180, 0.35);
+    border-right: 1px solid rgba(100, 160, 220, 0.6);
+  }
+  .fade-zone-out {
+    right: 0;
+    background: rgba(200, 180, 50, 0.3);
+    border-left: 1px solid rgba(200, 180, 50, 0.6);
+  }
+  .sp-time {
+    font-size: 10px;
+    color: #556;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Fade settings */
+  .fade-group {
+    display: flex; align-items: center; gap: 3px; flex-shrink: 0;
+  }
+  .fade-label { font-size: 9px; color: #556; text-transform: uppercase; letter-spacing: 0.5px; }
+  .fade-input {
+    width: 38px; background: #151520; border: 1px solid #2a2a35;
+    border-radius: 3px; color: #aab; font-size: 11px;
+    padding: 3px 4px; text-align: center; font-family: inherit;
+  }
+  .fade-input:focus { border-color: #4a4a6a; outline: none; }
+  .fade-unit { font-size: 9px; color: #445; }
+
+  /* Volume fader */
+  .song-fader { width: 55px; flex-shrink: 0; accent-color: #68b; height: 4px; }
+  .song-fader-val { width: 28px; text-align: right; font-size: 10px; color: #556; flex-shrink: 0; }
+
+  .song-row { cursor: pointer; border-left: 3px solid transparent; }
+  .song-row:hover { background: #151520; }
+
+  /* Ambiance row */
+  .amb-row {
+    padding: 4px 12px 4px 44px;
+    border-bottom: 1px solid #1a1a22;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    background: #0e1210;
+    min-height: 32px;
+  }
+  .amb-row.active { background: #12201a; }
+  .amb-row.selected { background: #1a1a10; border-left: 3px solid #cc6; padding-left: 41px; }
+  .amb-icon { font-size: 10px; color: #4a7; flex-shrink: 0; }
+  .amb-icon.playing { animation: pulse 2s infinite; }
+  .amb-name { color: #5a8; font-size: 11px; flex-shrink: 0; }
+  .amb-status { font-size: 9px; color: #4a7; opacity: 0.8; flex-shrink: 0; }
+  .amb-fader { width: 70px; accent-color: #4a7; height: 4px; flex-shrink: 0; }
+  .amb-fader-val { width: 28px; text-align: right; font-size: 10px; color: #4a7; flex-shrink: 0; }
+  .amb-btns { display: flex; gap: 3px; flex-shrink: 0; }
+  .abtn {
+    border: none; border-radius: 4px; font-size: 10px; font-weight: 600;
+    cursor: pointer; padding: 4px 8px; transition: all 0.12s;
+  }
+  .abtn:active { transform: scale(0.93); }
+  .abtn-play { background: #1a2a1a; color: #5a8; }
+  .abtn-play:hover { background: #2a4a2a; }
+  .abtn-stop { background: #2a1a1a; color: #a66; }
+  .abtn-stop:hover { background: #3a2a2a; }
+
+  /* ─── Panneau droit ─── */
+  .side {
+    width: 320px;
+    background: rgba(11,11,18,0.75);
+    border-left: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  .now-label { font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase; }
+  .now-title {
+    font-size: 26px; font-weight: 300; text-align: center;
+    line-height: 1.3; min-height: 36px; color: #fff;
+  }
+  .now-sub { font-size: 12px; color: #666; text-align: center; }
+
+  .now-state {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; text-align: center;
+    padding: 4px 12px; border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .now-state.state-playing { background: #0f2a0f; color: #6c6; }
+  .now-state.state-fading { background: #2a2a0f; color: #cc6; }
+  .now-state.state-ambiance { background: #0f2a1f; color: #4a8; }
+  .now-state.state-paused { background: #2a1f0f; color: #a86; }
+  .now-state.state-stopped { background: #1a1a1a; color: #555; }
+
+  .progress-wrap { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+  .progress-bar {
+    width: 100%; height: 8px; background: #1a1a22; border-radius: 4px;
+    cursor: grab; position: relative;
+  }
+  .progress-bar:active { cursor: grabbing; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #4c8, #4a7);
+    width: 0%; transition: width 0.25s linear; border-radius: 3px; pointer-events: none;
+    position: absolute; top: 0; left: 0;
+  }
+  .progress-fill.fading {
+    background: linear-gradient(90deg, #cc6, #a84);
+  }
+  .progress-times {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #444; font-variant-numeric: tabular-nums;
+  }
+
+  .footer-amb-fader { width: 60px; accent-color: #4a7; height: 4px; flex-shrink: 0; }
+  .footer-amb-label { font-weight: 600; flex-shrink: 0; transition: all 0.3s; }
+  .footer-amb-label.active { color: #fc0 !important; text-shadow: 0 0 6px rgba(255,204,0,0.5); }
+  .footer-amb-val { width: 30px; text-align: right; font-size: 10px; color: #4a7; flex-shrink: 0; }
+  .footer-credit { font-size: 14px; white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+
+  /* Ambient-under toggle button */
+  .amb-under-btn {
+    border: none; border-radius: 4px; font-size: 10px; font-weight: 600;
+    cursor: pointer; padding: 3px 7px; transition: all 0.12s; flex-shrink: 0;
+    background: #1a1a22; color: #445; letter-spacing: 0.3px;
+  }
+  .amb-under-btn:hover { background: #2a2a35; }
+  .amb-under-btn.active { background: #0f2a1f; color: #4a8; }
+  .amb-under-btn.active:hover { background: #1a3a2a; }
+
+  /* Drag-and-drop reorder */
+  .song-row.dragging { opacity: 0.4; }
+  .song-row.drag-over { border-top: 2px solid #68b !important; }
+  .drag-handle {
+    cursor: grab; color: #333; font-size: 12px; flex-shrink: 0; padding: 0 2px;
+    user-select: none; transition: color 0.15s;
+  }
+  .drag-handle:hover { color: #666; }
+  .drag-handle:active { cursor: grabbing; }
+
+  /* Drop zone for adding songs from PC */
+  .cue-list.drag-hover { outline: 2px dashed #68b; outline-offset: -4px; }
+  .drop-overlay {
+    display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(20, 30, 60, 0.85); z-index: 10;
+    justify-content: center; align-items: center; flex-direction: column;
+    gap: 12px; pointer-events: none;
+  }
+  .drop-overlay.visible { display: flex; }
+  .drop-overlay-text { color: #68b; font-size: 16px; font-weight: 600; }
+  .drop-overlay-sub { color: #556; font-size: 12px; }
+
+  /* Dropped (local) song indicator */
+  .local-badge {
+    font-size: 8px; color: #86a; background: #1a1a2a; padding: 1px 5px;
+    border-radius: 3px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ─── Help Modal ─── */
+  .help-modal {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8); z-index: 200;
+    justify-content: center; align-items: center;
+  }
+  .help-content {
+    background: #12121a; border: 1px solid #333; border-radius: 12px;
+    max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto;
+    padding: 30px; color: #ccc; font-size: 13px; line-height: 1.7;
+  }
+  .help-content::-webkit-scrollbar { width: 6px; }
+  .help-content::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+  .help-content h2 { color: #fff; font-size: 20px; margin-bottom: 16px; }
+  .help-content h3 { color: #68b; font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .help-content p { margin: 6px 0; }
+  .help-content ul { margin: 6px 0 6px 20px; }
+  .help-content li { margin: 4px 0; }
+  .help-content .help-key { background: #222; color: #aab; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-family: monospace; }
+  .help-content .help-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .help-close {
+    float: right; background: #2a1a1a; color: #c66; border: none; border-radius: 6px;
+    padding: 6px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .help-close:hover { background: #3a2a2a; }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    .main { flex-direction: column; overflow: visible; }
+    .side { width: 100%; padding: 16px 12px; gap: 12px; order: 1; flex: none; border-left: none; border-bottom: 1px solid #222; }
+    .cue-list { order: 2; overflow-y: visible; }
+    .now-title { font-size: 20px; }
+    .song-row { flex-wrap: wrap; gap: 5px; padding: 8px 10px; }
+    .song-name { width: 100%; flex: none; font-size: 14px; order: -1; }
+    .fade-group { order: 10; }
+    .tableau-header { position: static; }
+    .amb-row { padding-left: 12px; flex-wrap: wrap; }
+    .header h1 { font-size: 12px; }
+    .footer-bar { padding: 6px 10px; gap: 8px; flex-wrap: wrap; }
+    .footer-label { display: none; }
+    .gbtn { padding: 6px 12px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="splash-bg"></div>
+
+<div class="status-bar status-loading" id="statusBar">
+  <div class="status-dot"></div>
+  <span class="status-text" id="statusText">Chargement...</span>
+  <span class="status-detail" id="statusDetail"></span>
+</div>
+
+<div class="loading-bar" id="loadingBar">
+  <div class="loading-inner">
+    <span class="loading-text" id="loadingText">Chargement des fichiers audio...</span>
+    <div class="loading-track"><div class="loading-fill" id="loadingFill"></div></div>
+    <span class="loading-pct" id="loadingPct">0%</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="cue-list" id="cueList" style="position:relative">
+    <div class="drop-overlay" id="dropOverlay">
+      <div class="drop-overlay-text">Déposer les fichiers MP3 ici</div>
+      <div class="drop-overlay-sub">Les morceaux seront ajoutés au tableau en cours</div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="now-label" title="Affiche les informations du morceau en cours de lecture ou sélectionné">EN COURS</div>
+    <div class="now-state state-stopped" id="nowState" title="Indique l'état actuel : Lecture, Pause, Fade out, Ambiance, ou Arrêté">En attente</div>
+    <div class="now-title" id="nowTitle" title="Nom du morceau actuellement en lecture ou sélectionné dans la liste">—</div>
+    <div class="now-sub" id="nowSub" title="Indique le tableau et le numéro du morceau"></div>
+
+    <div class="progress-wrap" id="progressWrap" style="visibility:hidden">
+      <div class="progress-bar" id="progressBar" title="Progression du morceau — cliquer ou glisser pour se déplacer dans le morceau"><div class="progress-fill" id="progressFill"></div><div class="fade-zone fade-zone-in" id="progZoneIn" style="display:none" title="Zone bleue = durée du fondu d'entrée (le volume monte progressivement)"></div><div class="fade-zone fade-zone-out" id="progZoneOut" style="display:none" title="Zone jaune = durée du fondu de sortie (le volume baisse et l'ambiance reprend)"></div></div>
+      <div class="progress-times">
+        <span id="timeElapsed">0:00</span>
+        <span id="timeRemaining">-0:00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-bar">
+  <button class="gbtn" style="background:#1a1a2a;color:#88a;font-size:11px;padding:6px 12px" onclick="document.getElementById('helpModal').style.display='flex'" title="Ouvrir l'aide complète du logiciel">? Aide</button>
+  <div class="footer-divider"></div>
+  <div class="footer-section">
+    <span class="footer-label">Morceau</span>
+    <button class="gbtn gbtn-play" onclick="globalPlay()" title="Lance le morceau sélectionné (surligné en bleu dans la liste). Si un morceau est en pause, reprend la lecture.">&#9654; Lecture</button>
+    <button class="gbtn gbtn-pause" onclick="globalPause()" title="Met en pause le morceau en cours. L'ambiance est aussi mise en pause. Appuyer sur Lecture pour reprendre.">&#10074;&#10074; Pause</button>
+    <button class="gbtn gbtn-stop" onclick="globalStop()" title="Arrête tout : le morceau en cours et l'ambiance. La sélection est réinitialisée.">&#9632; Stop</button>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-section">
+    <span class="footer-label">Ambiance</span>
+    <span class="footer-amb-label" id="footerAmbT1Label" style="color:#6b6;font-size:10px">T1</span>
+    <input type="range" class="footer-amb-fader" id="footerAmbT1" min="0" max="100" value="21" title="Règle le volume de l'ambiance du Tableau 1. Modifie en temps réel si l'ambiance est en cours." oninput="setTableauAmbVolume(0, this.value)">
+    <span class="footer-amb-val" id="footerAmbT1Val">21%</span>
+    <span class="footer-amb-label" id="footerAmbT2Label" style="color:#68b;font-size:10px;margin-left:8px">T2</span>
+    <input type="range" class="footer-amb-fader" id="footerAmbT2" min="0" max="100" value="50" title="Règle le volume de l'ambiance du Tableau 2. Modifie en temps réel si l'ambiance est en cours." oninput="setTableauAmbVolume(1, this.value)">
+    <span class="footer-amb-val" id="footerAmbT2Val">50%</span>
+  </div>
+  <div style="flex:1"></div>
+  <span class="footer-credit"><span style="color:#fff">Chorus Comedy Life</span> <span style="color:#555">(Régie Son développée par Anthony Hunt)</span></span>
+</div>
+
+<div class="help-modal" id="helpModal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="help-content">
+    <button class="help-close" onclick="document.getElementById('helpModal').style.display='none'">Fermer</button>
+    <h2>Aide — Régie Son</h2>
+
+    <h3>Principe général</h3>
+    <p>Ce logiciel permet de gérer la diffusion sonore d'un spectacle organisé en <strong>deux tableaux</strong>, chacun avec ses morceaux et son ambiance sonore de fond.</p>
+
+    <h3>Sélectionner et lancer un morceau</h3>
+    <ul>
+      <li><strong>Cliquer sur un morceau</strong> dans la liste pour le sélectionner (surligné en jaune avec le badge <span class="help-badge" style="background:#2a2a0f;color:#cc6">SUIVANT</span>).</li>
+      <li>Appuyer sur le bouton <strong>Lecture</strong> dans la barre du bas pour le lancer.</li>
+      <li>Le morceau en cours est surligné en vert avec le badge <span class="help-badge" style="background:#0f2a0f;color:#6c6">LECTURE</span>.</li>
+    </ul>
+
+    <h3>Contrôles de lecture (barre du bas)</h3>
+    <ul>
+      <li><strong>Lecture</strong> — Lance le morceau sélectionné, ou reprend après une pause.</li>
+      <li><strong>Pause</strong> — Met en pause le morceau et l'ambiance. Appuyer sur Lecture pour reprendre.</li>
+      <li><strong>Stop</strong> — Arrête tout (morceau + ambiance) et réinitialise la sélection.</li>
+    </ul>
+
+    <h3>Ambiance sonore</h3>
+    <p>Chaque tableau possède une ambiance de fond (une par tableau) qui joue en boucle.</p>
+    <ul>
+      <li>Le bouton <strong>♫ Amb</strong> sur chaque morceau contrôle si l'ambiance continue en sourdine pendant ce morceau (vert = activé, gris = désactivé).</li>
+      <li>Quand <strong>Amb est activé</strong> : l'ambiance baisse à 15% du volume pendant le morceau, puis remonte progressivement quand il se termine.</li>
+      <li>Quand <strong>Amb est désactivé</strong> : l'ambiance s'arrête complètement pendant le morceau (utile pour le premier morceau de chaque tableau).</li>
+      <li>Les curseurs <strong>T1</strong> et <strong>T2</strong> dans la barre du bas règlent le volume global de chaque ambiance.</li>
+    </ul>
+
+    <h3>Fondus (Fade In / Fade Out)</h3>
+    <ul>
+      <li><strong>IN</strong> — Durée du fondu d'entrée en secondes. Le volume monte progressivement au début du morceau. 0 = démarrage immédiat.</li>
+      <li><strong>OUT</strong> — Durée du fondu de sortie en secondes. Le volume baisse avant la fin du morceau et l'ambiance reprend en crossfade. 0 = arrêt net.</li>
+      <li>Les zones colorées sur la barre de progression indiquent les zones de fondu : <span style="color:#4682B4">bleue = entrée</span>, <span style="color:#cc6">jaune = sortie</span>.</li>
+    </ul>
+
+    <h3>Volume</h3>
+    <ul>
+      <li>Chaque morceau a son propre <strong>curseur de volume</strong> (0–100%). Le changement s'applique immédiatement si le morceau est en lecture.</li>
+      <li>Chaque ligne d'ambiance a aussi un curseur de volume, synchronisé avec les faders T1/T2 du pied de page.</li>
+    </ul>
+
+    <h3>Barre de progression</h3>
+    <ul>
+      <li>Chaque morceau affiche une barre de progression avec le temps écoulé et restant.</li>
+      <li><strong>Cliquer ou glisser</strong> sur la barre pour se déplacer dans le morceau.</li>
+      <li>Le panneau de droite affiche aussi la progression du morceau en cours.</li>
+    </ul>
+
+    <h3>Réorganiser les morceaux</h3>
+    <ul>
+      <li>Chaque morceau a une poignée <span class="help-key">☰</span> à gauche.</li>
+      <li><strong>Maintenir et glisser</strong> la poignée pour échanger la position de deux morceaux dans le même tableau.</li>
+    </ul>
+
+    <h3>Ajouter des morceaux depuis l'ordinateur</h3>
+    <ul>
+      <li><strong>Glisser-déposer</strong> des fichiers MP3 depuis l'explorateur de fichiers directement sur la liste.</li>
+      <li>Les morceaux ajoutés portent le badge <span class="help-badge" style="background:#1a1a2a;color:#86a">LOCAL</span> et sont temporaires (perdus au rechargement de la page).</li>
+      <li>Ils sont ajoutés à la fin du tableau correspondant au morceau actuellement sélectionné.</li>
+    </ul>
+
+    <h3>Indicateurs</h3>
+    <ul>
+      <li><span style="color:#4a7">Point vert</span> à côté du nom = fichier audio chargé en cache et prêt à jouer.</li>
+      <li><span style="color:#333">Point gris</span> = fichier en cours de chargement.</li>
+      <li>La barre de chargement en haut indique la progression du pré-chargement de tous les fichiers audio.</li>
+    </ul>
+
+    <h3>Panneau latéral droit</h3>
+    <p>Affiche en grand le nom du morceau en cours ou sélectionné, son état (Lecture, Pause, Fade out, Ambiance, Arrêté), et une barre de progression interactive.</p>
+  </div>
+</div>
+
+<audio id="audioAmbiance" loop preload="none"></audio>
+<audio id="audioSong" preload="none"></audio>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DONNÉES
+// ═══════════════════════════════════════════════════
+
+let TABLEAUX = []; // chargé depuis cues.json au démarrage (voir INIT)
+
+// Build flat list: one ambiance per tableau, then all its songs
+const CUE_LIST = []; // { type:'song'|'amb', ... }
+
+function construireListe() {
+TABLEAUX.forEach((tab, ti) => {
+  // One ambiance row per tableau
+  CUE_LIST.push({
+    type: 'amb',
+    tableau: ti,
+    name: tab.name.replace('Tableau', 'Amb. Tableau'),
+    file: tab.ambiance,
+    volume: tab.ambVolume,
+  });
+  // Songs
+  tab.songs.forEach((song, si) => {
+    CUE_LIST.push({
+      type: 'song',
+      tableau: ti,
+      songIndex: si,
+      name: song.name,
+      file: song.file,
+      volume: 100,
+      fadeIn: song.fadeIn || 0,   // seconds, 0 = instant
+      fadeOut: song.fadeOut !== undefined ? song.fadeOut : 8,  // seconds, default 8s fade-out; explicit 0 = hard cut
+      ambUnder: song.ambUnder !== undefined ? song.ambUnder : true, // keep ambiance playing under this song (default ON)
+      ambTableau: song.ambTableau !== undefined ? song.ambTableau : ti, // which tableau's ambiance to use
+      endAt: song.endAt || 0, // stop song at this time (seconds), 0 = play full
+      ambDuringIntro: song.ambDuringIntro || false, // keep ambient at full volume during fadeIn, then fade out
+      noAmbAfter: song.noAmbAfter || false, // do NOT resume ambiance after this song ends (silence to next cue)
+    });
+  });
+});
+}
+
+
+// ═══════════════════════════════════════════════════
+// CACHE — Pre-fetch all audio files
+// ═══════════════════════════════════════════════════
+
+const cachedFiles = new Set();
+let cacheReady = false;
+let cacheTotal = 0;
+let cacheDone = 0;
+
+function audioUrl(f, ci) {
+  // If this cue has a local blob URL, use it
+  if (ci !== undefined && CUE_LIST[ci] && CUE_LIST[ci].blobUrl) return CUE_LIST[ci].blobUrl;
+  return '/audio/' + encodeURIComponent(f);
+}
+
+async function preloadAudio() {
+  // Collect unique files
+  const files = new Set();
+  CUE_LIST.forEach(c => files.add(c.file));
+  const fileList = [...files];
+  cacheTotal = fileList.length;
+
+  const loadEl = document.getElementById('loadingFill');
+  const loadPct = document.getElementById('loadingPct');
+  const loadText = document.getElementById('loadingText');
+
+  // Check if Cache API is available
+  if ('caches' in window) {
+    const cache = await caches.open('chorus-audio-v2');
+
+    for (const f of fileList) {
+      const url = audioUrl(f);
+      try {
+        // Check if already cached
+        const existing = await cache.match(url);
+        if (existing) {
+          cachedFiles.add(f);
+          cacheDone++;
+        } else {
+          loadText.textContent = `Chargement: ${f.substring(0, 40)}...`;
+          const resp = await fetch(url);
+          if (resp.ok) {
+            await cache.put(url, resp);
+            cachedFiles.add(f);
+            cacheDone++;
+          }
+        }
+      } catch (e) {
+        console.warn('Cache failed for', f, e);
+        cacheDone++;
+      }
+      const pct = Math.round(cacheDone / cacheTotal * 100);
+      loadEl.style.width = pct + '%';
+      loadPct.textContent = pct + '%';
+      // Update cache dots without full render
+      CUE_LIST.forEach((c, i) => {
+        if (c.file === f) {
+          const cd = document.getElementById('cd-' + i);
+          if (cd) { cd.classList.add('cached'); cd.title = 'En cache'; }
+        }
+      });
+    }
+  } else {
+    // No Cache API — just fetch to warm browser cache
+    for (const f of fileList) {
+      try {
+        const resp = await fetch(audioUrl(f));
+        if (resp.ok) {
+          await resp.blob(); // consume to cache
+          cachedFiles.add(f);
+        }
+      } catch(e) { /* ignore */ }
+      cacheDone++;
+      const pct = Math.round(cacheDone / cacheTotal * 100);
+      loadEl.style.width = pct + '%';
+      loadPct.textContent = pct + '%';
+      // Update cache dots for this file
+      CUE_LIST.forEach((c, i) => {
+        if (cachedFiles.has(c.file)) {
+          const cd = document.getElementById('cd-' + i);
+          if (cd) { cd.classList.add('cached'); cd.title = 'En cache'; }
+        }
+      });
+    }
+  }
+
+  cacheReady = true;
+  document.getElementById('loadingBar').classList.add('hidden');
+  // Only stomp the status if nothing has happened yet (user hasn't clicked Lecture).
+  // Otherwise we'd overwrite "Ambiance" / "Lecture" / "Sélectionné" with stale "Prêt".
+  const sb = document.getElementById('statusBar');
+  if (sb && sb.classList.contains('status-stopped') && !songPlaying && !ambPlaying && !songPaused && !ambPaused && currentSongCue < 0 && currentAmbCue < 0) {
+    setStatus('stopped', 'Prêt', `${cacheTotal} fichiers en cache`);
+  }
+
+  // Now load durations for all songs
+  await loadAllDurations();
+}
+
+// ═══════════════════════════════════════════════════
+// DURATIONS — load metadata for all songs
+// ═══════════════════════════════════════════════════
+
+const songDurations = {}; // file -> duration in seconds
+
+function loadDuration(file) {
+  return new Promise(resolve => {
+    if (songDurations[file]) { resolve(songDurations[file]); return; }
+    const tmp = new Audio();
+    tmp.preload = 'metadata';
+    let done = false; // BUG-19: prevent double-call
+    const onDone = (dur) => {
+      if (done) return; // BUG-19: guard against second call
+      done = true;
+      tmp.removeEventListener('loadedmetadata', onMeta);
+      tmp.removeEventListener('error', onErr);
+      tmp.src = '';
+      resolve(dur);
+    };
+    const onMeta = () => { songDurations[file] = tmp.duration; onDone(tmp.duration); };
+    const onErr = () => onDone(0);
+    tmp.addEventListener('loadedmetadata', onMeta);
+    tmp.addEventListener('error', onErr);
+    tmp.src = audioUrl(file);
+    setTimeout(() => onDone(0), 5000);
+  });
+}
+
+async function loadAllDurations() {
+  // Load sequentially — browsers throttle concurrent Audio loads
+  const files = [];
+  const seen = new Set();
+  CUE_LIST.forEach(c => {
+    if (c.type === 'song' && !seen.has(c.file)) {
+      seen.add(c.file);
+      files.push(c.file);
+    }
+  });
+
+  for (const f of files) {
+    await loadDuration(f);
+    // Update bars for this file immediately
+    CUE_LIST.forEach((cue, ci) => {
+      if (cue.type === 'song' && cue.file === f) updateSongBar(ci);
+    });
+  }
+}
+
+function updateSongBar(ci) {
+  const cue = CUE_LIST[ci];
+  if (!cue || cue.type !== 'song') return;
+  const rawD = songDurations[cue.file];
+  if (!rawD || rawD <= 0) return;
+  const d = (cue.endAt > 0) ? Math.min(cue.endAt, rawD) : rawD;
+
+  const remT = document.getElementById('spt-rem-' + ci);
+  if (remT) remT.textContent = formatTime(d);
+
+  const fadeInPct = ((cue.fadeIn || 0) / d * 100);
+  const fadeOutPct = ((cue.fadeOut || 0) / d * 100);
+
+  const zIn = document.getElementById('spz-in-' + ci);
+  const zOut = document.getElementById('spz-out-' + ci);
+  if (zIn) { zIn.style.display = fadeInPct > 0 ? '' : 'none'; zIn.style.width = fadeInPct + '%'; }
+  if (zOut) { zOut.style.display = fadeOutPct > 0 ? '' : 'none'; zOut.style.width = fadeOutPct + '%'; }
+}
+
+
+// ═══════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════
+
+const audioAmb = document.getElementById('audioAmbiance');
+const audioSong = document.getElementById('audioSong');
+let currentSongCue = -1;
+let currentAmbCue = -1;
+let selectedCue = -1;  // selected (highlighted) cue (song or amb), ready to play
+let songPlaying = false;
+let songPaused = false;
+let ambPlaying = false;
+let ambPaused = false;
+let switchingTrack = false; // guard: playSong is transitioning between tracks
+let activeFades = new Map();
+let autoFadeStarted = false;
+let ambIntroFadeTriggered = false; // tracks whether ambient fade-out after intro has been triggered
+
+// ═══════════════════════════════════════════════════
+// STATUS BAR
+// ═══════════════════════════════════════════════════
+
+function setStatus(type, text, detail) {
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar status-' + type;
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('statusDetail').textContent = detail || '';
+
+  // Side panel state badge
+  const stateEl = document.getElementById('nowState');
+  stateEl.className = 'now-state state-' + type;
+  stateEl.textContent = text;
+}
+
+// ═══════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════
+
+const fadeResolvers = new Map(); // BUG-6: track resolve callbacks for cancellation
+
+function cancelFade(key) {
+  if (activeFades.has(key)) {
+    clearInterval(activeFades.get(key));
+    activeFades.delete(key);
+  }
+  if (fadeResolvers.has(key)) {
+    fadeResolvers.get(key)();
+    fadeResolvers.delete(key);
+  }
+}
+
+function fadeAudio(el, from, to, durationMs) {
+  const key = el.id;
+  cancelFade(key); // BUG-6: resolve old promise before starting new fade
+  return new Promise(resolve => {
+    if (durationMs <= 0) {
+      el.volume = Math.max(0, Math.min(1, to));
+      resolve();
+      return;
+    }
+    const step = 25;
+    const steps = Math.ceil(durationMs / step);
+    const delta = (to - from) / steps;
+    let i = 0;
+    fadeResolvers.set(key, resolve); // BUG-6: store resolve ref
+    const iv = setInterval(() => {
+      i++;
+      el.volume = Math.max(0, Math.min(1, from + delta * i));
+      if (i >= steps) {
+        clearInterval(iv);
+        activeFades.delete(key);
+        fadeResolvers.delete(key);
+        el.volume = Math.max(0, Math.min(1, to));
+        resolve();
+      }
+    }, step);
+    activeFades.set(key, iv);
+  });
+}
+
+// ─── Selection ───
+
+function selectSong(cueIdx) {
+  const cue = CUE_LIST[cueIdx];
+  if (!cue) return;
+  selectedCue = cueIdx;
+
+  // Update side panel to show selected cue info
+  document.getElementById('nowTitle').textContent = cue.name;
+  if (cue.type === 'song') {
+    document.getElementById('nowSub').textContent =
+      `${TABLEAUX[cue.tableau].name} — Morceau ${cue.songIndex + 1}`;
+  } else {
+    document.getElementById('nowSub').textContent =
+      `${TABLEAUX[cue.tableau].name} — Ambiance`;
+  }
+
+  if (!songPlaying && !songPaused && !ambPlaying) {
+    setStatus('stopped', 'Sélectionné', cue.name);
+  }
+  render();
+}
+
+function findNextSong(fromCueIdx) {
+  for (let i = fromCueIdx + 1; i < CUE_LIST.length; i++) {
+    if (CUE_LIST[i].type === 'song') return i;
+  }
+  return -1;
+}
+
+// Find next cue of any type (used for auto-advance after Lecture click)
+function findNextCue(fromCueIdx) {
+  if (fromCueIdx + 1 < CUE_LIST.length) return fromCueIdx + 1;
+  return -1;
+}
+
+// ─── Ambiance ───
+
+async function playAmbiance(cueIdx, fadeInMs) {
+  fadeInMs = fadeInMs || 0;
+  const cue = CUE_LIST[cueIdx];
+  if (!cue || cue.type !== 'amb') return;
+  ambPaused = false; // starting fresh — clear any paused state
+  const targetVol = cue.volume / 100;
+
+  // Already playing same file? Fade to target volume
+  if (ambPlaying && currentAmbCue >= 0 && CUE_LIST[currentAmbCue].file === cue.file && !audioAmb.paused) {
+    if (fadeInMs > 0) {
+      fadeAudio(audioAmb, audioAmb.volume, targetVol, fadeInMs);
+    } else {
+      audioAmb.volume = targetVol;
+    }
+    currentAmbCue = cueIdx;
+    if (!songPlaying && !songPaused) {
+      const tabName = TABLEAUX[cue.tableau].name.split(' — ')[1] || TABLEAUX[cue.tableau].name;
+      setStatus('ambiance', 'Ambiance', tabName + ' (boucle)');
+      document.getElementById('nowTitle').textContent = 'Ambiance';
+      document.getElementById('nowSub').textContent = tabName;
+    }
+    render();
+    return;
+  }
+
+  // Fade out old
+  if (!audioAmb.paused) {
+    await fadeAudio(audioAmb, audioAmb.volume, 0, 800);
+    audioAmb.pause();
+  }
+
+  audioAmb.src = audioUrl(cue.file, cueIdx);
+  if (fadeInMs > 0) {
+    audioAmb.volume = 0;
+  } else {
+    audioAmb.volume = targetVol;
+  }
+  currentAmbCue = cueIdx;
+  try {
+    await audioAmb.play();
+    ambPlaying = true; // BUG-16: set after successful play()
+  } catch (e) {
+    ambPlaying = false; // BUG-16: reset on failure
+    currentAmbCue = -1;
+    return;
+  }
+  if (fadeInMs > 0) {
+    fadeAudio(audioAmb, 0, targetVol, fadeInMs);
+  }
+
+  if (!songPlaying && !songPaused) {
+    const tabName = TABLEAUX[cue.tableau].name.split(' — ')[1] || TABLEAUX[cue.tableau].name;
+    setStatus('ambiance', 'Ambiance', tabName + ' (boucle)');
+    document.getElementById('nowTitle').textContent = 'Ambiance';
+    document.getElementById('nowSub').textContent = tabName;
+    document.getElementById('progressWrap').style.visibility = 'hidden';
+  }
+  render();
+}
+
+// Footer ambiance button — play ambiance for current context (selected song's tableau, or current, or first)
+function footerPlayAmbiance() {
+  let ambIdx = -1;
+  // Use current song's tableau if playing
+  if (currentSongCue >= 0) {
+    ambIdx = findTableauAmb(currentSongCue);
+  }
+  // Or selected song's tableau
+  if (ambIdx < 0 && selectedCue >= 0) {
+    ambIdx = findTableauAmb(selectedCue);
+  }
+  // Or current ambiance (resume)
+  if (ambIdx < 0 && currentAmbCue >= 0) {
+    ambIdx = currentAmbCue;
+  }
+  // Fallback: first ambiance
+  if (ambIdx < 0) {
+    for (let i = 0; i < CUE_LIST.length; i++) {
+      if (CUE_LIST[i].type === 'amb') { ambIdx = i; break; }
+    }
+  }
+  if (ambIdx >= 0) playAmbiance(ambIdx);
+}
+
+async function stopAmbiance() {
+  if (audioAmb.paused) return;
+  await fadeAudio(audioAmb, audioAmb.volume, 0, 800);
+  audioAmb.pause();
+  ambPlaying = false;
+  currentAmbCue = -1;
+  render();
+}
+
+// ─── Tableau ambiance volume (footer faders) ───
+
+function setTableauAmbVolume(tableau, value) {
+  const vol = parseInt(value);
+  // Update all amb cues for this tableau
+  CUE_LIST.forEach((cue, ci) => {
+    if (cue.type === 'amb' && cue.tableau === tableau) {
+      cue.volume = vol;
+      // Update the inline fader if it exists
+      const fader = document.querySelector(`#row-${ci} .amb-fader`);
+      if (fader) { fader.value = vol; fader.setAttribute('value', vol); }
+      const av = document.getElementById('av-' + ci);
+      if (av) av.textContent = vol + '%';
+    }
+  });
+  // Update footer label
+  const valEl = document.getElementById(tableau === 0 ? 'footerAmbT1Val' : 'footerAmbT2Val');
+  if (valEl) valEl.textContent = vol + '%';
+  // Live-update if this tableau's ambiance is currently playing
+  if (ambPlaying && currentAmbCue >= 0 && CUE_LIST[currentAmbCue].tableau === tableau) {
+    const targetVol = vol / 100;
+    // If ducked under a song, scale the duck proportionally
+    if (songPlaying && CUE_LIST[currentSongCue] && CUE_LIST[currentSongCue].ambUnder) {
+      audioAmb.volume = targetVol * 0.15;
+    } else {
+      audioAmb.volume = targetVol;
+    }
+  }
+}
+
+// ─── Morceaux ───
+
+// BUG-1/7: Internal halt — just stops audio, no side effects (no ambiance resume, no next-song select)
+async function _haltSong(immediate) {
+  if (!songPlaying && !songPaused) return;
+  cancelFade('audioSong'); // BUG-8: cancel any in-progress fade
+  const cueIdx = currentSongCue;
+  const cue = CUE_LIST[cueIdx];
+
+  if (!immediate) {
+    const fadeOutMs = cue ? (cue.fadeOut || 0) * 1000 : 0;
+    if (fadeOutMs > 0 && !audioSong.paused) {
+      await fadeAudio(audioSong, audioSong.volume, 0, fadeOutMs);
+    }
+  }
+  audioSong.pause();
+  audioSong.currentTime = 0;
+  songPlaying = false;
+  songPaused = false;
+  autoFadeStarted = false;
+  ambIntroFadeTriggered = false;
+
+  // BUG-14: Reset inline progress bar
+  const fill = document.getElementById('spf-' + cueIdx);
+  const elT = document.getElementById('spt-el-' + cueIdx);
+  const remT = document.getElementById('spt-rem-' + cueIdx);
+  if (fill) fill.style.width = '0%';
+  if (elT) elT.textContent = '0:00';
+  if (remT) { const d = songDurations[cue?.file]; remT.textContent = d ? formatTime(d) : '0:00'; }
+
+  document.getElementById('progressWrap').style.visibility = 'hidden';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressFill').classList.remove('fading');
+  currentSongCue = -1;
+}
+
+async function playSong(cueIdx) {
+  const cue = CUE_LIST[cueIdx];
+  if (!cue || cue.type !== 'song') return;
+
+  switchingTrack = true; // prevent ended handler from interfering during transition
+
+  // BUG-2: Also halt if song is paused
+  if (songPlaying || songPaused) await _haltSong(true); // BUG-1/7: immediate halt, no side effects
+
+  // Handle ambiance: stop during song, crossfade back at end
+  cancelFade('audioAmb');
+  ambIntroFadeTriggered = false;
+
+  // If switching tableaux, stop old ambient immediately
+  const songTabAmb = findTableauAmb(cueIdx);
+  if (currentAmbCue >= 0 && songTabAmb >= 0 && currentAmbCue !== songTabAmb && !audioAmb.paused) {
+    audioAmb.pause();
+    ambPlaying = false;
+  }
+
+  if (cue.ambDuringIntro) {
+    // Ambient plays during intro (fadeIn period), then fades to 0
+    // ambIntroDrop: if set (e.g. 0.5), immediately drop ambient to that fraction
+    const dropFactor = cue.ambIntroDrop || 1; // 1 = no sudden drop (normal)
+    if (!audioAmb.paused && ambPlaying) {
+      const ambCue = currentAmbCue >= 0 ? CUE_LIST[currentAmbCue] : null;
+      const startVol = (ambCue ? ambCue.volume / 100 : 0.3) * dropFactor;
+      if (dropFactor < 1) audioAmb.volume = startVol; // immediate drop
+      const introFadeMs = (cue.fadeIn || 12) * 1000;
+      fadeAudio(audioAmb, startVol, 0, introFadeMs);
+      setTimeout(() => {
+        if (audioAmb.volume < 0.01 && currentSongCue === cueIdx) {
+          audioAmb.pause();
+          ambPlaying = false;
+          render();
+        }
+      }, introFadeMs + 100);
+    } else {
+      // No ambient playing — start it then fade out
+      if (songTabAmb >= 0) {
+        await playAmbiance(songTabAmb, 0);
+        const ambCue = CUE_LIST[songTabAmb];
+        const startVol = (ambCue ? ambCue.volume / 100 : 0.3) * dropFactor;
+        audioAmb.volume = startVol;
+        const introFadeMs = (cue.fadeIn || 12) * 1000;
+        fadeAudio(audioAmb, startVol, 0, introFadeMs);
+        setTimeout(() => {
+          if (audioAmb.volume < 0.01 && currentSongCue === cueIdx) {
+            audioAmb.pause();
+            ambPlaying = false;
+            render();
+          }
+        }, introFadeMs + 100);
+      }
+    }
+  } else if (!audioAmb.paused) {
+    // Crossfade: fade out ambient over the song's fade-in duration (or 400ms if no fade-in)
+    const ambFadeMs = (cue.fadeIn || 0) > 0 ? (cue.fadeIn * 1000) : 400;
+    fadeAudio(audioAmb, audioAmb.volume, 0, ambFadeMs);
+    // Pause ambient after fade completes
+    setTimeout(() => {
+      if (audioAmb.volume < 0.01 && currentSongCue === cueIdx) {
+        audioAmb.pause();
+        ambPlaying = false;
+        render();
+      }
+    }, ambFadeMs + 100);
+  }
+
+  currentSongCue = cueIdx;
+  // Note: don't overwrite selectedCue here — caller (globalPlay) advances it to the next cue
+  songPaused = false;
+  ambPaused = false; // starting a song clears any paused ambiance state
+  autoFadeStarted = false;
+  const targetVol = cue.volume / 100;
+  const fadeInMs = (cue.fadeIn || 0) * 1000;
+
+  audioSong.src = audioUrl(cue.file, cueIdx);
+
+  setStatus('playing', 'Lecture', cue.name);
+
+  try {
+    if (fadeInMs > 0) {
+      audioSong.volume = 0;
+      await audioSong.play();
+      songPlaying = true;
+      fadeAudio(audioSong, 0, targetVol, fadeInMs);
+    } else {
+      audioSong.volume = targetVol;
+      await audioSong.play();
+      songPlaying = true;
+    }
+  } catch (e) {
+    // BUG-16: play() rejected — reset state
+    songPlaying = false;
+    currentSongCue = -1;
+    switchingTrack = false;
+    setStatus('stopped', 'Erreur lecture', cue.name);
+    render();
+    return;
+  }
+
+  switchingTrack = false; // transition complete — ended handler can fire normally again
+
+  document.getElementById('nowTitle').textContent = cue.name;
+  document.getElementById('nowSub').textContent =
+    `${TABLEAUX[cue.tableau].name} — Morceau ${cue.songIndex + 1}`;
+  document.getElementById('progressWrap').style.visibility = 'visible';
+  document.getElementById('progressFill').classList.remove('fading');
+  render();
+}
+
+// BUG-4: stopSong accepts {resumeAmbiance} option — defaults to true for user-initiated stops
+async function stopSong(cueIdx, opts) {
+  if (!songPlaying && !songPaused) return;
+  opts = opts || {};
+  const resumeAmb = opts.resumeAmbiance !== false;
+
+  await _haltSong(opts.immediate || false);
+
+  // Resume ambiance for this tableau (only if not called from globalStop AND not noAmbAfter)
+  const stoppedCue = CUE_LIST[cueIdx];
+  if (resumeAmb && !(stoppedCue && stoppedCue.noAmbAfter)) {
+    const nextAmb = findTableauAmb(cueIdx);
+    if (nextAmb >= 0) {
+      if (!audioAmb.paused && ambPlaying) {
+        // Already playing (ducked) — smoothly restore volume
+        const ambCue = CUE_LIST[nextAmb];
+        await fadeAudio(audioAmb, audioAmb.volume, ambCue ? ambCue.volume / 100 : 0.3, 1500);
+      } else {
+        await playAmbiance(nextAmb, 1500);
+      }
+    }
+  }
+
+  // Select next song
+  const nextSong = findNextSong(cueIdx);
+  if (nextSong >= 0) {
+    selectSong(nextSong);
+  }
+
+  render();
+}
+
+// Find the ambiance cue for the same tableau as the given song cue
+function findTableauAmb(songCueIdx) {
+  const cue = CUE_LIST[songCueIdx];
+  if (!cue) return -1;
+  // Use ambTableau if set (allows a song to use a different tableau's ambiance)
+  const tab = cue.ambTableau !== undefined ? cue.ambTableau : cue.tableau;
+  for (let i = 0; i < CUE_LIST.length; i++) {
+    if (CUE_LIST[i].type === 'amb' && CUE_LIST[i].tableau === tab) return i;
+  }
+  return -1;
+}
+
+// Song ended naturally
+audioSong.addEventListener('ended', () => {
+  if (currentSongCue < 0) return; // BUG-3: guard against stale ended events
+  if (switchingTrack) return; // guard: playSong is transitioning — ignore stale ended from old track
+  const cueIdx = currentSongCue;
+
+  // BUG-14: Reset inline progress bar
+  const fill = document.getElementById('spf-' + cueIdx);
+  const elT = document.getElementById('spt-el-' + cueIdx);
+  const remT = document.getElementById('spt-rem-' + cueIdx);
+  if (fill) fill.style.width = '0%';
+  if (elT) elT.textContent = '0:00';
+  const cueRef = CUE_LIST[cueIdx];
+  if (remT && cueRef) { const d = songDurations[cueRef.file]; remT.textContent = d ? formatTime(d) : '0:00'; }
+
+  songPlaying = false;
+  songPaused = false;
+  autoFadeStarted = false;
+  ambIntroFadeTriggered = false;
+  currentSongCue = -1;
+  document.getElementById('progressWrap').style.visibility = 'hidden';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressFill').classList.remove('fading');
+
+  // Resume ambiance — smooth fade if it was ducked (ambUnder)
+  // Skip entirely if the song was flagged noAmbAfter (silence after).
+  const noAmbAfter = cueRef && cueRef.noAmbAfter;
+  const nextAmb = noAmbAfter ? -1 : findTableauAmb(cueIdx);
+  if (nextAmb >= 0) {
+    if (!audioAmb.paused && ambPlaying) {
+      // Already playing (ducked under song) — smoothly restore volume
+      const ambCue = CUE_LIST[nextAmb];
+      fadeAudio(audioAmb, audioAmb.volume, ambCue ? ambCue.volume / 100 : 0.3, 1500);
+    } else {
+      playAmbiance(nextAmb, 1500);
+    }
+  }
+
+  // Selection: should already be advanced by globalPlay (caller). Only fix if not advanced.
+  if (selectedCue <= cueIdx) {
+    const nextCue = findNextCue(cueIdx);
+    if (nextCue >= 0) {
+      selectSong(nextCue);
+    } else {
+      selectedCue = -1;
+      setStatus('ambiance', 'Ambiance', 'Fin de la liste');
+    }
+  }
+
+  // Update status to ambiance if no next song is playing
+  if (nextAmb >= 0) {
+    const ambCue = CUE_LIST[nextAmb];
+    if (ambCue) {
+      const tabName = TABLEAUX[ambCue.tableau].name.split(' — ')[1] || TABLEAUX[ambCue.tableau].name;
+      setStatus('ambiance', 'Ambiance', tabName + ' (boucle)');
+    }
+  } else if (noAmbAfter) {
+    setStatus('stopped', 'Silence', 'Fin du morceau — aucune ambiance');
+  }
+
+  render();
+});
+
+// ─── Global controls ───
+
+async function globalPlay() {
+  // BUG-12: Don't restart if already playing the selected song
+  if (songPlaying && currentSongCue === selectedCue) return;
+
+  // Resume from pause
+  if (songPaused) {
+    // BUG-11: If paused during auto fade-out, reset fade state
+    if (autoFadeStarted) {
+      autoFadeStarted = false;
+      const cue = CUE_LIST[currentSongCue];
+      if (cue) audioSong.volume = cue.volume / 100;
+      // Stop ambiance that was crossfading in
+      if (!audioAmb.paused) { audioAmb.pause(); ambPlaying = false; }
+      document.getElementById('progressFill').classList.remove('fading');
+    }
+    try {
+      await audioSong.play();
+      songPaused = false;
+      songPlaying = true;
+      const cue = CUE_LIST[currentSongCue];
+      if (cue) setStatus('playing', 'Lecture', cue.name);
+      render();
+    } catch (e) { /* play rejected — stay paused */ }
+    return;
+  }
+  // Resume ambiance from pause (no song was paused)
+  if (ambPaused) {
+    try {
+      await audioAmb.play();
+      ambPaused = false;
+      ambPlaying = true;
+      const ambCue = currentAmbCue >= 0 ? CUE_LIST[currentAmbCue] : null;
+      if (ambCue) {
+        const tabName = TABLEAUX[ambCue.tableau].name.split(' — ')[1] || TABLEAUX[ambCue.tableau].name;
+        setStatus('ambiance', 'Ambiance', tabName + ' (boucle)');
+      }
+      render();
+    } catch (e) { /* play rejected — stay paused */ }
+    return;
+  }
+  // Play the selected cue (song or amb)
+  if (selectedCue >= 0 && CUE_LIST[selectedCue]) {
+    const cue = CUE_LIST[selectedCue];
+    const playedIdx = selectedCue;
+    if (cue.type === 'song') {
+      await playSong(playedIdx);
+    } else if (cue.type === 'amb') {
+      await playAmbiance(playedIdx, 1500);
+    }
+    // Auto-advance selection to next cue (any type)
+    const next = findNextCue(playedIdx);
+    if (next >= 0) selectSong(next);
+    return;
+  }
+  // Nothing selected — select first cue
+  if (CUE_LIST.length > 0) selectSong(0);
+}
+
+function globalPause() {
+  // Case 1: a song is playing — pause song (and ambiance if crossfading)
+  if (songPlaying && !audioSong.paused) {
+    cancelFade('audioSong'); // BUG-8: cancel in-progress fades
+    cancelFade('audioAmb');  // BUG-8: cancel ambiance crossfade too
+    audioSong.pause();
+    if (!audioAmb.paused) { audioAmb.pause(); } // Pause ambiance crossfade if started during auto-fade
+    songPaused = true;
+    songPlaying = false;
+    const cue = CUE_LIST[currentSongCue];
+    setStatus('paused', 'En pause', cue ? cue.name : '');
+    render();
+    return;
+  }
+  // Case 2: only ambiance is playing — pause ambiance
+  if (ambPlaying && !audioAmb.paused) {
+    cancelFade('audioAmb');
+    audioAmb.pause();
+    ambPaused = true;
+    ambPlaying = false;
+    const ambCue = currentAmbCue >= 0 ? CUE_LIST[currentAmbCue] : null;
+    setStatus('paused', 'En pause', ambCue ? ambCue.name : 'Ambiance');
+    render();
+  }
+}
+
+async function globalStop() {
+  if (songPlaying || songPaused) await stopSong(currentSongCue, { resumeAmbiance: false, immediate: true }); // BUG-4
+  // Stop ambiance — fadeout if playing, immediate clear if paused
+  cancelFade('audioAmb');
+  if (ambPlaying && !audioAmb.paused) {
+    await fadeAudio(audioAmb, audioAmb.volume, 0, 800);
+    audioAmb.pause();
+  }
+  ambPlaying = false;
+  ambPaused = false;
+  currentSongCue = -1;
+  currentAmbCue = -1;
+  selectedCue = -1;
+  setStatus('stopped', 'Arrêté', '');
+  document.getElementById('nowTitle').textContent = '—';
+  document.getElementById('nowSub').textContent = '';
+  document.getElementById('progressWrap').style.visibility = 'hidden';
+  render();
+}
+
+// ═══════════════════════════════════════════════════
+// INTERFACE
+// ═══════════════════════════════════════════════════
+
+// Build DOM once, then update state with lightweight updateUI()
+let domBuilt = false;
+const rowEls = {}; // ci -> DOM element
+
+function buildDOM() {
+  const el = document.getElementById('cueList');
+  el.innerHTML = '';
+  let lastTableau = -1;
+
+  CUE_LIST.forEach((cue, ci) => {
+    if (cue.tableau !== lastTableau) {
+      lastTableau = cue.tableau;
+      const hdr = document.createElement('div');
+      hdr.className = 'tableau-header ' + (cue.tableau === 0 ? 't1' : 't2');
+      hdr.textContent = TABLEAUX[cue.tableau].name;
+      el.appendChild(hdr);
+    }
+
+    if (cue.type === 'amb') {
+      const row = document.createElement('div');
+      row.className = 'amb-row';
+      row.id = 'row-' + ci;
+      row.innerHTML = `
+        <span class="amb-icon" id="amb-icon-${ci}" title="Ambiance sonore de ce tableau — joue en boucle sous les morceaux si le bouton Amb est activé">&#9835;</span>
+        <span class="amb-name" title="Fichier audio : ${cue.file}">Ambiance</span>
+        <span class="amb-status" id="amb-status-${ci}" style="display:none" title="L'ambiance joue en boucle continue sous les morceaux">BOUCLE</span>
+        <span style="flex:1"></span>
+        <input type="range" class="amb-fader" min="0" max="100" value="${cue.volume}" data-ci="${ci}" title="Volume de l'ambiance pour ce tableau (0–100%). Se synchronise avec le fader T1/T2 du pied de page.">
+        <span class="amb-fader-val" id="av-${ci}" title="Valeur actuelle du volume de l'ambiance">${cue.volume}%</span>
+      `;
+      el.appendChild(row);
+      rowEls[ci] = row;
+    } else {
+      const row = document.createElement('div');
+      row.className = 'song-row';
+      row.id = 'row-' + ci;
+      row.draggable = true;
+      row.innerHTML = `
+        <span class="drag-handle" title="Maintenir et glisser pour réorganiser l'ordre des morceaux dans ce tableau">&#9776;</span>
+        <span class="song-num" title="Position du morceau dans le tableau">${cue.songIndex + 1}</span>
+        <span class="cache-dot" id="cd-${ci}" title="Indicateur de cache : gris = en cours de chargement, vert = prêt à jouer"></span>
+        <span class="song-name" title="Cliquer sur le nom pour sélectionner ce morceau (surligné en bleu), puis appuyer sur Lecture pour le lancer">${cue.name}</span>
+        ${cue.isLocal ? '<span class="local-badge" title="Fichier ajouté depuis votre ordinateur par glisser-déposer — disparaîtra au rechargement de la page">LOCAL</span>' : ''}
+        <span class="badge" id="badge-${ci}" style="display:none"></span>
+        <button class="amb-under-btn${cue.ambUnder ? ' active' : ''}" data-ci="${ci}" data-act="amb-under" title="${cue.ambUnder ? 'Ambiance activée : l\'ambiance joue en sourdine sous ce morceau. Cliquer pour désactiver.' : 'Ambiance désactivée : l\'ambiance s\'arrête pendant ce morceau. Cliquer pour activer.'}">&#9835; Amb</button>
+        <span class="fade-group" title="Fondu d'entrée : le volume monte progressivement pendant cette durée au début du morceau">
+          <span class="fade-label">IN</span>
+          <input type="number" class="fade-input" min="0" max="30" step="0.5" value="${cue.fadeIn}" data-ci="${ci}" data-field="fadeIn" title="Durée du fondu d'entrée en secondes. 0 = le morceau démarre au volume max immédiatement.">
+          <span class="fade-unit">s</span>
+        </span>
+        <span class="fade-group" title="Fondu de sortie : le volume baisse progressivement avant la fin du morceau, et l'ambiance reprend en crossfade">
+          <span class="fade-label">OUT</span>
+          <input type="number" class="fade-input" min="0" max="30" step="0.5" value="${cue.fadeOut}" data-ci="${ci}" data-field="fadeOut" title="Durée du fondu de sortie en secondes. L'ambiance reprend progressivement pendant ce fondu. 0 = arrêt net.">
+          <span class="fade-unit">s</span>
+        </span>
+        <input type="range" class="song-fader" min="0" max="100" value="${cue.volume}" data-ci="${ci}" title="Volume du morceau (0–100%). Le changement s'applique immédiatement si le morceau est en lecture.">
+        <span class="song-fader-val" id="sv-${ci}" title="Valeur actuelle du volume du morceau">${cue.volume}%</span>
+        <div class="song-progress" title="Progression du morceau — la barre verte avance pendant la lecture, jaune pendant le fondu de sortie">
+          <span class="sp-time" id="spt-el-${ci}" title="Temps écoulé depuis le début du morceau">0:00</span>
+          <div class="sp-bar" data-ci="${ci}" title="Cliquer ou glisser pour se déplacer dans le morceau en cours de lecture"><div class="sp-fill" id="spf-${ci}"></div><div class="fade-zone fade-zone-in" id="spz-in-${ci}" style="display:none" title="Zone bleue = fondu d'entrée (le volume monte progressivement)"></div><div class="fade-zone fade-zone-out" id="spz-out-${ci}" style="display:none" title="Zone jaune = fondu de sortie (le volume baisse et l'ambiance reprend en crossfade)"></div></div>
+          <span class="sp-time" id="spt-rem-${ci}" title="Temps restant avant la fin du morceau">-0:00</span>
+        </div>
+      `;
+      el.appendChild(row);
+      rowEls[ci] = row;
+    }
+  });
+
+  // Event delegation (set once)
+  el.onclick = (e) => {
+    // Ambiance buttons
+    const btn = e.target.closest('[data-act]');
+    if (btn) {
+      const ci = parseInt(btn.dataset.ci);
+      const act = btn.dataset.act;
+      if (act === 'ap') playAmbiance(ci);
+      if (act === 'as') stopAmbiance();
+      if (act === 'amb-under') {
+        CUE_LIST[ci].ambUnder = !CUE_LIST[ci].ambUnder;
+        btn.classList.toggle('active', CUE_LIST[ci].ambUnder);
+        btn.title = CUE_LIST[ci].ambUnder
+          ? 'Ambiance sous le morceau : activé — cliquer pour désactiver'
+          : 'Ambiance sous le morceau : désactivé — cliquer pour activer';
+      }
+      return;
+    }
+    // Skip clicks on inputs/faders/seek bars
+    if (e.target.closest('input') || e.target.closest('.sp-bar')) return;
+    // Click on cue row (song or amb) = select it (not play)
+    const cueRow = e.target.closest('.song-row, .amb-row');
+    if (cueRow) {
+      const ci = parseInt(cueRow.id.replace('row-', ''));
+      if (!isNaN(ci) && CUE_LIST[ci]) {
+        selectSong(ci);
+      }
+    }
+  };
+
+  el.oninput = (e) => {
+    const t = e.target;
+    const ci = parseInt(t.dataset.ci);
+    if (isNaN(ci)) return;
+
+    if (t.classList.contains('song-fader')) {
+      CUE_LIST[ci].volume = parseInt(t.value);
+      const lbl = document.getElementById('sv-' + ci);
+      if (lbl) lbl.textContent = t.value + '%';
+      if (ci === currentSongCue && songPlaying) audioSong.volume = t.value / 100;
+    }
+    if (t.classList.contains('amb-fader')) {
+      CUE_LIST[ci].volume = parseInt(t.value);
+      const lbl = document.getElementById('av-' + ci);
+      if (lbl) lbl.textContent = t.value + '%';
+      if (ambPlaying && !audioAmb.paused) audioAmb.volume = t.value / 100;
+      const tab = CUE_LIST[ci].tableau;
+      CUE_LIST.forEach((c, i) => {
+        if (c.type === 'amb' && c.tableau === tab) c.volume = parseInt(t.value);
+      });
+    }
+    if (t.classList.contains('fade-input')) {
+      const field = t.dataset.field;
+      CUE_LIST[ci][field] = parseFloat(t.value) || 0;
+      // Live-update fade zone markers if this song is playing
+      updateFadeZones(ci);
+    }
+  };
+
+  domBuilt = true;
+}
+
+// Lightweight state update — no DOM rebuild
+function render() {
+  if (!domBuilt) { buildDOM(); return; }
+
+  CUE_LIST.forEach((cue, ci) => {
+    const row = rowEls[ci];
+    if (!row) return;
+
+    if (cue.type === 'amb') {
+      const isActive = ci === currentAmbCue && ambPlaying;
+      const isSelected = ci === selectedCue && !isActive;
+      row.classList.toggle('active', isActive);
+      row.classList.toggle('selected', isSelected);
+      const icon = document.getElementById('amb-icon-' + ci);
+      const status = document.getElementById('amb-status-' + ci);
+      if (icon) icon.classList.toggle('playing', isActive);
+      if (status) status.style.display = isActive ? '' : 'none';
+    } else {
+      const isPlaying = ci === currentSongCue && (songPlaying || songPaused);
+      const isFading = isPlaying && autoFadeStarted;
+      const isSelected = ci === selectedCue && !isPlaying;
+      row.classList.toggle('active', isPlaying && !isFading);
+      row.classList.toggle('fading', isFading);
+      row.classList.toggle('selected', isSelected);
+
+      // Badge — BUG-13: always clear inline styles first
+      const badge = document.getElementById('badge-' + ci);
+      if (badge) {
+        badge.style.background = '';
+        badge.style.color = '';
+        if (isFading) {
+          badge.style.display = '';
+          badge.className = 'badge badge-fading';
+          badge.textContent = 'FADE OUT';
+        } else if (isPlaying && songPaused) {
+          badge.style.display = '';
+          badge.className = 'badge badge-paused';
+          badge.textContent = 'PAUSE';
+        } else if (isPlaying && songPlaying) {
+          badge.style.display = '';
+          badge.className = 'badge badge-playing';
+          badge.textContent = 'LECTURE';
+        } else if (isSelected) {
+          badge.style.display = '';
+          badge.className = 'badge';
+          badge.style.background = '#2a2a0f';
+          badge.style.color = '#cc6';
+          badge.textContent = 'SUIVANT';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      // Cache dot
+      const cd = document.getElementById('cd-' + ci);
+      if (cd) {
+        cd.classList.toggle('cached', cachedFiles.has(cue.file));
+        cd.title = cachedFiles.has(cue.file) ? 'En cache' : 'Non chargé';
+      }
+    }
+  });
+
+  // Footer ambiance labels — highlight active tableau
+  const t1Label = document.getElementById('footerAmbT1Label');
+  const t2Label = document.getElementById('footerAmbT2Label');
+  const activeTab = (ambPlaying && currentAmbCue >= 0 && !audioAmb.paused) ? CUE_LIST[currentAmbCue].tableau : -1;
+  if (t1Label) t1Label.classList.toggle('active', activeTab === 0);
+  if (t2Label) t2Label.classList.toggle('active', activeTab === 1);
+}
+
+// Update fade zone markers for a specific cue (called on fade input change)
+function updateFadeZones(ci) {
+  const cue = CUE_LIST[ci];
+  if (!cue || cue.type !== 'song') return;
+  // Use preloaded duration, or live duration if playing; apply endAt cap
+  const rawD2 = (ci === currentSongCue && audioSong.duration > 0) ? audioSong.duration : songDurations[cue.file];
+  if (!rawD2 || rawD2 <= 0) return;
+  const d = (cue.endAt > 0) ? Math.min(cue.endAt, rawD2) : rawD2;
+
+  const fadeInPct = ((cue.fadeIn || 0) / d * 100);
+  const fadeOutPct = ((cue.fadeOut || 0) / d * 100);
+  // Inline bar
+  const zIn = document.getElementById('spz-in-' + ci);
+  const zOut = document.getElementById('spz-out-' + ci);
+  if (zIn) { zIn.style.display = fadeInPct > 0 ? '' : 'none'; zIn.style.width = fadeInPct + '%'; }
+  if (zOut) { zOut.style.display = fadeOutPct > 0 ? '' : 'none'; zOut.style.width = fadeOutPct + '%'; }
+  // Side panel (only if this is the active song)
+  if (ci === currentSongCue) {
+    const pzIn = document.getElementById('progZoneIn');
+    const pzOut = document.getElementById('progZoneOut');
+    if (pzIn) { pzIn.style.display = fadeInPct > 0 ? '' : 'none'; pzIn.style.width = fadeInPct + '%'; }
+    if (pzOut) { pzOut.style.display = fadeOutPct > 0 ? '' : 'none'; pzOut.style.width = fadeOutPct + '%'; }
+  }
+}
+
+function formatTime(s) {
+  if (!isFinite(s) || isNaN(s)) return '0:00';
+  return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
+}
+
+// Progress — update both side panel and inline song progress
+setInterval(() => {
+  if (songPlaying || songPaused) {
+    const ci = currentSongCue;
+    const cueRef = CUE_LIST[ci];
+    // Use audioSong.duration if available; otherwise fall back to the preloaded duration cache.
+    // Fixes: after reload, audioSong.duration is NaN until loadedmetadata fires — without fallback,
+    // endAt and auto fade-out were skipped and songs played to the end.
+    const fileDur = cueRef ? (songDurations[cueRef.file] || 0) : 0;
+    const d = audioSong.duration || fileDur;
+    if (!d) return;
+    const e = audioSong.currentTime;
+    // Use endAt as effective duration if set, otherwise full file duration
+    const effD = (cueRef && cueRef.endAt > 0) ? Math.min(cueRef.endAt, d) : d;
+    const pct = (e / effD * 100);
+    // Side panel
+    document.getElementById('progressFill').style.width = Math.min(pct, 100) + '%';
+    document.getElementById('timeElapsed').textContent = formatTime(e);
+    document.getElementById('timeRemaining').textContent = '-' + formatTime(Math.max(effD - e, 0));
+    // Inline song progress
+    const fill = document.getElementById('spf-' + ci);
+    const elT = document.getElementById('spt-el-' + ci);
+    const remT = document.getElementById('spt-rem-' + ci);
+    if (fill) fill.style.width = Math.min(pct, 100) + '%';
+    if (elT) elT.textContent = formatTime(e);
+    if (remT) remT.textContent = '-' + formatTime(Math.max(effD - e, 0));
+
+    // endAt: stop song when reaching the end point
+    if (cueRef && cueRef.endAt > 0 && e >= cueRef.endAt && songPlaying) {
+      audioSong.pause();
+      audioSong.dispatchEvent(new Event('ended'));
+      return;
+    }
+
+    // Fade zone markers (compute once when duration is known)
+    if (cueRef && effD > 0) {
+      const fadeInPct = ((cueRef.fadeIn || 0) / effD * 100);
+      const fadeOutPct = ((cueRef.fadeOut || 0) / effD * 100);
+      // Inline bar zones
+      const zIn = document.getElementById('spz-in-' + ci);
+      const zOut = document.getElementById('spz-out-' + ci);
+      if (zIn) {
+        if (fadeInPct > 0) { zIn.style.display = ''; zIn.style.width = fadeInPct + '%'; }
+        else { zIn.style.display = 'none'; }
+      }
+      if (zOut) {
+        if (fadeOutPct > 0) { zOut.style.display = ''; zOut.style.width = fadeOutPct + '%'; }
+        else { zOut.style.display = 'none'; }
+      }
+      // Side panel zones
+      const pzIn = document.getElementById('progZoneIn');
+      const pzOut = document.getElementById('progZoneOut');
+      if (pzIn) {
+        if (fadeInPct > 0) { pzIn.style.display = ''; pzIn.style.width = fadeInPct + '%'; }
+        else { pzIn.style.display = 'none'; }
+      }
+      if (pzOut) {
+        if (fadeOutPct > 0) { pzOut.style.display = ''; pzOut.style.width = fadeOutPct + '%'; }
+        else { pzOut.style.display = 'none'; }
+      }
+    }
+
+    // Auto fade-out: start fading when remaining time to effective end <= fadeOut duration
+    if (songPlaying && !autoFadeStarted) {
+      const cue = CUE_LIST[ci];
+      const fadeOutSec = cue ? (cue.fadeOut || 0) : 0;
+      if (fadeOutSec > 0 && (effD - e) <= fadeOutSec) {
+        autoFadeStarted = true;
+        const remainMs = (effD - e) * 1000;
+        fadeAudio(audioSong, audioSong.volume, 0, remainMs);
+        // Start ambient sound — fade in over same duration as song fade out (crossfade)
+        const nextAmb = findTableauAmb(ci);
+        if (nextAmb >= 0) playAmbiance(nextAmb, remainMs);
+        // Update UI to show fading state
+        setStatus('fading', 'Fade out', cue.name + ' — ' + Math.ceil(effD - e) + 's');
+        document.getElementById('progressFill').classList.add('fading');
+        render();
+      }
+    }
+
+    // Update fade countdown in status bar
+    if (autoFadeStarted && songPlaying) {
+      const cue = CUE_LIST[ci];
+      const remaining = effD - e;
+      if (remaining > 0) {
+        setStatus('fading', 'Fade out', cue.name + ' — ' + remaining.toFixed(1) + 's');
+      }
+    }
+  }
+}, 200);
+
+// Seek — drag support for progress bars
+function seekFromEvent(bar, clientX) {
+  if ((!songPlaying && !songPaused) || !audioSong.duration) return;
+  const r = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+  const cueSeek = CUE_LIST[currentSongCue];
+  const effDSeek = (cueSeek && cueSeek.endAt > 0) ? Math.min(cueSeek.endAt, audioSong.duration) : audioSong.duration;
+  const newPos = pct * effDSeek;
+
+  // BUG-9: If seeking backward past fade-out zone, reset auto-fade
+  if (autoFadeStarted) {
+    const cue = cueSeek;
+    const fadeOutSec = cue ? (cue.fadeOut || 0) : 0;
+    const fadeOutStart = effDSeek - fadeOutSec;
+    if (newPos < fadeOutStart) {
+      autoFadeStarted = false;
+      cancelFade('audioSong');
+      cancelFade('audioAmb');
+      if (cue) audioSong.volume = cue.volume / 100;
+      // Stop ambiance crossfade
+      if (!audioAmb.paused && ambPlaying) { audioAmb.pause(); ambPlaying = false; }
+      document.getElementById('progressFill').classList.remove('fading');
+      setStatus('playing', 'Lecture', cue ? cue.name : '');
+      render();
+    }
+  }
+
+  // Reset ambDuringIntro fade if seeking before fadeIn point
+  if (ambIntroFadeTriggered && cueSeek && cueSeek.ambDuringIntro && newPos < (cueSeek.fadeIn || 0)) {
+    ambIntroFadeTriggered = false;
+    cancelFade('audioAmb');
+    // Restore ambient volume
+    if (!audioAmb.paused && ambPlaying) {
+      const ambCue = currentAmbCue >= 0 ? CUE_LIST[currentAmbCue] : null;
+      const targetAmb = ambCue ? ambCue.volume / 100 : 0.3;
+      audioAmb.volume = targetAmb;
+    }
+  }
+
+  audioSong.currentTime = newPos;
+}
+
+function makeDraggable(bar) {
+  let dragging = false;
+
+  const onMove = (clientX) => { if (dragging) seekFromEvent(bar, clientX); };
+  const onUp = () => { dragging = false; document.removeEventListener('mousemove', mmove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', tmove); document.removeEventListener('touchend', onUp); };
+  const mmove = (e) => onMove(e.clientX);
+  const tmove = (e) => { e.preventDefault(); onMove(e.touches[0].clientX); };
+
+  bar.addEventListener('mousedown', (e) => {
+    if ((!songPlaying && !songPaused) || !audioSong.duration) return;
+    e.preventDefault();
+    dragging = true;
+    seekFromEvent(bar, e.clientX);
+    document.addEventListener('mousemove', mmove);
+    document.addEventListener('mouseup', onUp);
+  });
+  bar.addEventListener('touchstart', (e) => {
+    if ((!songPlaying && !songPaused) || !audioSong.duration) return;
+    dragging = true;
+    seekFromEvent(bar, e.touches[0].clientX);
+    document.addEventListener('touchmove', tmove, { passive: false });
+    document.addEventListener('touchend', onUp);
+  }, { passive: true });
+}
+
+// Side panel bar
+makeDraggable(document.getElementById('progressBar'));
+
+// Inline song bars — delegated drag
+(function() {
+  const cueList = document.getElementById('cueList');
+  let dragging = false;
+  let activeBar = null;
+
+  function onMove(clientX) { if (dragging && activeBar) seekFromEvent(activeBar, clientX); }
+  function onUp() { dragging = false; activeBar = null; document.removeEventListener('mousemove', mmove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', tmove); document.removeEventListener('touchend', onUp); }
+  function mmove(e) { onMove(e.clientX); }
+  function tmove(e) { e.preventDefault(); onMove(e.touches[0].clientX); }
+
+  cueList.addEventListener('mousedown', (e) => {
+    const bar = e.target.closest('.sp-bar');
+    if (!bar) return;
+    const ci = parseInt(bar.dataset.ci);
+    if (ci !== currentSongCue) return;
+    if ((!songPlaying && !songPaused) || !audioSong.duration) return;
+    e.preventDefault();
+    dragging = true;
+    activeBar = bar;
+    seekFromEvent(bar, e.clientX);
+    document.addEventListener('mousemove', mmove);
+    document.addEventListener('mouseup', onUp);
+  });
+  cueList.addEventListener('touchstart', (e) => {
+    const bar = e.target.closest('.sp-bar');
+    if (!bar) return;
+    const ci = parseInt(bar.dataset.ci);
+    if (ci !== currentSongCue) return;
+    if ((!songPlaying && !songPaused) || !audioSong.duration) return;
+    dragging = true;
+    activeBar = bar;
+    seekFromEvent(bar, e.touches[0].clientX);
+    document.addEventListener('touchmove', tmove, { passive: false });
+    document.addEventListener('touchend', onUp);
+  }, { passive: true });
+})();
+
+
+// ═══════════════════════════════════════════════════
+// DRAG & DROP — REORDER SONGS
+// ═══════════════════════════════════════════════════
+
+let dragSrcCi = null;
+
+document.getElementById('cueList').addEventListener('dragstart', (e) => {
+  const row = e.target.closest('.song-row');
+  if (!row) { e.preventDefault(); return; }
+  // Only allow drag from the handle
+  if (!e.target.closest('.drag-handle')) { e.preventDefault(); return; }
+  const ci = parseInt(row.id.replace('row-', ''));
+  if (isNaN(ci) || !CUE_LIST[ci] || CUE_LIST[ci].type !== 'song') { e.preventDefault(); return; }
+  dragSrcCi = ci;
+  row.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', ci.toString());
+});
+
+document.getElementById('cueList').addEventListener('dragend', (e) => {
+  document.querySelectorAll('.song-row.dragging').forEach(r => r.classList.remove('dragging'));
+  document.querySelectorAll('.song-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+  dragSrcCi = null;
+});
+
+document.getElementById('cueList').addEventListener('dragover', (e) => {
+  // Check if this is an internal reorder (not file drop)
+  if (dragSrcCi === null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const row = e.target.closest('.song-row');
+  document.querySelectorAll('.song-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+  if (row) {
+    const ci = parseInt(row.id.replace('row-', ''));
+    if (!isNaN(ci) && CUE_LIST[ci] && CUE_LIST[ci].type === 'song' && CUE_LIST[ci].tableau === CUE_LIST[dragSrcCi].tableau) {
+      row.classList.add('drag-over');
+    }
+  }
+});
+
+document.getElementById('cueList').addEventListener('drop', (e) => {
+  if (dragSrcCi === null) return; // Not internal reorder
+  e.preventDefault();
+  document.querySelectorAll('.song-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+  const row = e.target.closest('.song-row');
+  if (!row) return;
+  const targetCi = parseInt(row.id.replace('row-', ''));
+  if (isNaN(targetCi) || targetCi === dragSrcCi) return;
+  const src = CUE_LIST[dragSrcCi];
+  const tgt = CUE_LIST[targetCi];
+  if (!src || !tgt || src.type !== 'song' || tgt.type !== 'song') return;
+  if (src.tableau !== tgt.tableau) return; // Only reorder within same tableau
+
+  // Swap in CUE_LIST
+  const srcData = { ...src };
+  const tgtData = { ...tgt };
+  // Swap all properties except type and tableau
+  ['name', 'file', 'volume', 'fadeIn', 'fadeOut', 'ambUnder', 'isLocal', 'blobUrl', 'endAt', 'ambDuringIntro'].forEach(k => {
+    CUE_LIST[dragSrcCi][k] = tgtData[k];
+    CUE_LIST[targetCi][k] = srcData[k];
+  });
+
+  // Rebuild DOM to reflect new order
+  domBuilt = false;
+  buildDOM();
+  render();
+  dragSrcCi = null;
+});
+
+// ═══════════════════════════════════════════════════
+// DRAG & DROP — ADD SONGS FROM LOCAL PC
+// ═══════════════════════════════════════════════════
+
+const cueListEl = document.getElementById('cueList');
+const dropOverlay = document.getElementById('dropOverlay');
+let dragCounter = 0;
+
+cueListEl.addEventListener('dragenter', (e) => {
+  // Only handle file drops (not internal reorder)
+  if (dragSrcCi !== null) return;
+  if (!e.dataTransfer.types.includes('Files')) return;
+  e.preventDefault();
+  dragCounter++;
+  dropOverlay.classList.add('visible');
+});
+
+cueListEl.addEventListener('dragleave', (e) => {
+  if (dragSrcCi !== null) return;
+  dragCounter--;
+  if (dragCounter <= 0) {
+    dragCounter = 0;
+    dropOverlay.classList.remove('visible');
+  }
+});
+
+cueListEl.addEventListener('dragover', (e) => {
+  if (dragSrcCi !== null) return; // Internal reorder handled above
+  if (!e.dataTransfer.types.includes('Files')) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+});
+
+cueListEl.addEventListener('drop', (e) => {
+  if (dragSrcCi !== null) return; // Internal reorder handled above
+  e.preventDefault();
+  dragCounter = 0;
+  dropOverlay.classList.remove('visible');
+
+  const files = [...e.dataTransfer.files].filter(f =>
+    f.type === 'audio/mpeg' || f.name.toLowerCase().endsWith('.mp3')
+  );
+  if (files.length === 0) return;
+
+  // Determine which tableau to add to (based on selection or default to last)
+  let targetTableau = 0;
+  if (selectedCue >= 0 && CUE_LIST[selectedCue]) targetTableau = CUE_LIST[selectedCue].tableau;
+  else if (currentSongCue >= 0 && CUE_LIST[currentSongCue]) targetTableau = CUE_LIST[currentSongCue].tableau;
+
+  // Find insertion point: after last song in the target tableau
+  let insertAt = -1;
+  for (let i = CUE_LIST.length - 1; i >= 0; i--) {
+    if (CUE_LIST[i].tableau === targetTableau && CUE_LIST[i].type === 'song') {
+      insertAt = i + 1;
+      break;
+    }
+  }
+  if (insertAt < 0) {
+    // After the ambiance row of the target tableau
+    for (let i = 0; i < CUE_LIST.length; i++) {
+      if (CUE_LIST[i].tableau === targetTableau && CUE_LIST[i].type === 'amb') {
+        insertAt = i + 1;
+        break;
+      }
+    }
+  }
+  if (insertAt < 0) insertAt = CUE_LIST.length;
+
+  // Count existing songs in tableau for songIndex
+  let maxIdx = -1;
+  CUE_LIST.forEach(c => {
+    if (c.type === 'song' && c.tableau === targetTableau && c.songIndex > maxIdx) maxIdx = c.songIndex;
+  });
+
+  files.forEach((file, fi) => {
+    const blobUrl = URL.createObjectURL(file);
+    const name = file.name.replace(/\.mp3$/i, '').replace(/_mixed/g, '').replace(/_/g, ' ');
+    CUE_LIST.splice(insertAt + fi, 0, {
+      type: 'song',
+      tableau: targetTableau,
+      songIndex: maxIdx + 1 + fi,
+      name: name,
+      file: file.name,
+      volume: 100,
+      fadeIn: 0,
+      fadeOut: 8,
+      ambUnder: false,
+      endAt: 0,
+      ambDuringIntro: false,
+      isLocal: true,
+      blobUrl: blobUrl,
+    });
+  });
+
+  // Rebuild DOM
+  domBuilt = false;
+  buildDOM();
+  render();
+  setStatus('stopped', `${files.length} morceau(x) ajouté(s)`, 'Fichiers locaux — session uniquement');
+});
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+fetch('/cues.json', { cache: 'no-store' })
+  .then(r => { if (!r.ok) throw new Error('cues.json: ' + r.status); return r.json(); })
+  .then(data => {
+    TABLEAUX = data.tableaux || data;
+    construireListe();
+    buildDOM();
+    // Select first cue by default (ambiance row at top of the first scene)
+    if (CUE_LIST.length > 0) selectSong(0);
+    preloadAudio();
+  })
+  .catch(e => { document.body.insertAdjacentHTML('afterbegin', '<p style="padding:24px;color:#ff8a8a">Impossible de charger cues.json : ' + e.message + '</p>'); });
+</script>
+</body>
+</html>
