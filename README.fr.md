@@ -1,5 +1,7 @@
 [English](README.md) · **Français**
 
+**Anthony Hunt** · [Fiche du projet sur ingevision.cloud](https://ingevision.cloud/?p=chorus-comedy-life) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [Profil GitHub](https://github.com/anthohunt)
+
 # Chorus Comedy Life
 
 **La régie son web d'un spectacle : une opératrice ou un opérateur, un écran, une liste de morceaux et d'ambiances, et aucun droit à l'erreur.**

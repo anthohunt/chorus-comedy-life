@@ -1,5 +1,7 @@
 **English** · [Français](README.fr.md)
 
+**Anthony Hunt** · [Project page on ingevision.cloud](https://ingevision.cloud/?lang=en&p=chorus-comedy-life) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [GitHub profile](https://github.com/anthohunt)
+
 # Chorus Comedy Life
 
 **The web sound desk of a live show: one operator, one screen, a list of songs and ambiences, and no room for error.**
