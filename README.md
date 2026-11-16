@@ -2,24 +2,23 @@
 
 # Chorus Comedy Life
 
-**The sound desk of a live show, in one web page.** Each song starts on a click with its own fades, the scene's ambience loops underneath, and every file is loaded before the show starts.
+**The sound desk of a live show, in one web page: each song with its own fades, each scene with its own ambience.**
 
 [![The real desk with a demo list: the scene's ambience loops, the opening song starts, a jump into its fade-out brings the ambience back (click for the full video)](docs/demo.gif)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)
 
-*The real desk with a demo list and synthetic sounds; the video has no sound. [Full video (1:12)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)*
+*The real desk with a demo list made for the video; synthetic sounds, silent video. [Full video (1:12)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)*
 
 ## Using it
 
 - **Scenes.** One numbered list per scene: click a song, then Play.
-- **Ambience.** One loop per scene, with its volume. Under a song it drops to 15 % or stops, depending on the song's Amb button.
-- **Fades.** Fade-in and fade-out in seconds for each song, shown in blue and yellow on its progress bar. A song can stop at a set second.
-- **Transport.** Play, pause, stop. Clicking the bar jumps within the song; the right panel shows the current song in large type.
-- **Preloaded.** Every file is cached when the page opens; a green dot marks each ready song.
-- **Mastering.** `outils/masteriser.sh` bakes cuts and fades into the file at −14 LUFS, 256 kb/s, 44.1 kHz: what plays in rehearsal is what plays on the night.
+- **Ambience.** One loop per scene, with its volume. It fades out when a song starts and comes back during the song's fade-out.
+- **Fades.** Fade-in and fade-out in seconds for each song, shown in blue and yellow on its progress bar. A song can also stop at a set second.
+- **Playback.** Play, pause, stop; clicking the progress bar jumps within the playing song.
+- **File preparation.** `outils/masteriser.sh` cuts each file and brings it to the same loudness (−14 LUFS, 256 kb/s, 44.1 kHz), so cuts are made in the file, never live.
 
 ## Architecture
 
-![Architecture: songs are cut and normalised by masteriser.sh, then dropped into sons/; server.py reads cues.json and serves the page, the list and every MP3 to the desk in the browser, which plays one song per click through the room's speakers; a test instance runs the same code with a red banner](docs/architecture.svg)
+![Architecture: songs are cut and normalised by masteriser.sh, then dropped into sons/; server.py serves the page, cues.json and every MP3 to the desk in the browser, which reads the list and plays one song per click through the room's speakers; a test instance runs the same code with a red banner](docs/architecture.svg)
 
 *Diagram labels are in French.*
 
@@ -27,18 +26,17 @@
 
 - **Use.** Rehearsals of a musical, from May 2026: three scenes, each with its own ambience.
 - **Hosting.** Python service behind HTTPS on a personal server, plus a test instance with a red banner where changes were checked before going live. Taken offline on 5 November 2026 and archived.
-- **This repository.** The same desk with a sample list (`cues.json`) and four synthetic sounds (`sons/`). Python 3.8 or later, no dependency; ffmpeg only for mastering.
-- **Not working yet.** Reordering songs with the ☰ handle; the footer volume sliders cover the first two scenes only.
+- **This repository.** The same desk with a sample list (`cues.json`) and four synthetic sounds (`sons/`). Python 3.8 or later, no dependency; ffmpeg only for file preparation.
+- **Limits.** The ☰ handle does not reorder songs. The Amb button has no effect: the ambience always stops under a song. The footer sliders start at 21 % and 50 % whatever `cues.json` says, and cover two scenes only. Files are downloaded when the page opens, but playback still streams them from the server.
 
 ## Run it
 
 ```
-python3 server.py                               # http://127.0.0.1:8080
-python3 server.py --port 8081 --banner "TEST"   # test instance with a red banner
-outils/masteriser.sh song.wav sons/song.mp3 --debut 5 --fin 140 --fondu-sortie 6
+python3 server.py
+outils/masteriser.sh in.wav sons/out.mp3
 ```
 
-Describe your scenes in `cues.json` (`name`, `ambiance`, `ambVolume`, `songs`; per song `fadeIn`, `fadeOut`, `ambUnder`, `endAt`). Commercial songs are protected works: keep them out of the repository. The interface is in French.
+The desk opens at http://127.0.0.1:8080. `masteriser.sh` takes `--debut`, `--fin`, `--fondu-entree`, `--fondu-sortie` in seconds. `cues.json` holds `tableaux`, each with `name`, `ambiance`, `ambVolume` and `songs`; each song has `name` and `file`, optionally `fadeIn`, `fadeOut`, `endAt`, `noAmbAfter`. Commercial songs are protected works: keep them out of the repository.
 
 ---
 
