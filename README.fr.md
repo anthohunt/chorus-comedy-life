@@ -1,46 +1,45 @@
 [English](README.md) · **Français**
 
-**Anthony Hunt** · [Fiche du projet sur ingevision.cloud](https://ingevision.cloud/?p=chorus-comedy-life) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [Profil GitHub](https://github.com/anthohunt)
-
 # Chorus Comedy Life
 
-**La régie son web d'un spectacle : une opératrice ou un opérateur, un écran, une liste de morceaux et d'ambiances, et aucun droit à l'erreur.**
+**La régie son d'un spectacle, dans une page web.** Chaque morceau part sur un clic avec ses propres fondus, l'ambiance du tableau tourne en boucle dessous, et tous les fichiers sont chargés avant le début du spectacle.
 
-Un spectacle ne s'arrête pas pour déboguer. Il faut lancer le morceau suivant au signal du metteur en scène, le baisser sous un dialogue, garder une ambiance qui tourne sous toute une scène, et ne jamais jouer le mauvais fichier. Cette page se pilote depuis un ordinateur portable au fond de la salle.
+[![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance (cliquer pour la vidéo complète)](docs/demo.gif)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)
 
-![La régie avec la liste d'exemple](assets/console.png)
+*La vraie régie avec une liste de démonstration et des sons synthétiques ; la vidéo est muette. [Vidéo complète (1:12)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)*
 
-## Ce que fait la régie
-- **Liste de morceaux par tableau**, numérotés, réordonnables, un clic pour lancer.
-- **Fondus par morceau** : entrée et sortie réglées en secondes, individuellement.
-- **Une ambiance par tableau**, avec son curseur de volume, mélangée sous les morceaux et laissée en boucle pendant toute la scène.
-- **Transport qui se comporte** : lecture, pause, arrêt, morceau en cours toujours visible.
-- **Tout est préchargé** : le compteur indique le nombre de fichiers en cache ; rien n'est téléchargé en plein spectacle.
+## Ce qu'on fait avec
 
-## Décisions de conception
-- **Les coupes se font au mastering, pas à la lecture.** Le lecteur ne sait pas couper un morceau au milieu : coupes, fondus et enchaînés sont cuits dans le fichier (`outils/masteriser.sh`). Ce que l'on entend en répétition est exactement ce qui jouera le soir.
-- **Un seul niveau sonore** : chaque fichier est masterisé à −14 LUFS, 256 kb/s, 44,1 kHz. Sans cible fixe, des morceaux venus de dix sources arrivent à dix niveaux différents.
-- **Deux environnements identiques** pour ne pas casser l'outil un jour de répétition : lancez une seconde instance sur un autre port avec un bandeau rouge (`--banner "TEST"`), validez les nouveautés, puis promouvez.
-- **Les déplacements dans un morceau demandent des requêtes Range** : le serveur les gère.
+- **Tableaux.** Une liste numérotée par tableau : cliquer un morceau, puis Lecture.
+- **Ambiance.** Une boucle par tableau, avec son volume. Sous un morceau, elle descend à 15 % ou s'arrête, selon le bouton Amb du morceau.
+- **Fondus.** Fondu d'entrée et de sortie en secondes pour chaque morceau, en bleu et en jaune sur sa barre de progression. Un morceau peut s'arrêter à une seconde donnée.
+- **Transport.** Lecture, pause, arrêt. Un clic sur la barre déplace dans le morceau ; le panneau de droite affiche le morceau en cours en grand.
+- **Préchargé.** Tous les fichiers sont mis en cache à l'ouverture de la page ; un point vert marque chaque morceau prêt.
+- **Mastering.** `outils/masteriser.sh` cuit coupes et fondus dans le fichier, à −14 LUFS, 256 kb/s, 44,1 kHz : ce qui joue en répétition est ce qui jouera le soir.
 
-## Installer et lancer
-Prérequis : Python 3.8 ou plus ; ffmpeg pour le mastering (facultatif). Aucune autre dépendance.
+## Architecture
+
+![Architecture : les morceaux sont coupés et normalisés par masteriser.sh, puis déposés dans sons/ ; server.py lit cues.json et sert la page, la liste et tous les MP3 à la régie dans le navigateur, qui joue un morceau par clic sur la sono de la salle ; une instance de test fait tourner le même code avec un bandeau rouge](docs/architecture.svg)
+
+## Déploiement
+
+- **Usage.** Répétitions d'une comédie musicale, à partir de mai 2026 : trois tableaux, chacun avec son ambiance.
+- **Hébergement.** Service Python derrière HTTPS sur un serveur personnel, avec une instance de test à bandeau rouge où chaque changement était vérifié avant la mise en ligne. Retiré le 5 novembre 2026 et archivé.
+- **Ce dépôt.** La même régie avec une liste d'exemple (`cues.json`) et quatre sons synthétiques (`sons/`). Python 3.8 ou plus, aucune dépendance ; ffmpeg seulement pour le mastering.
+- **Ne marche pas encore.** Réordonner les morceaux par la poignée ☰ ; les curseurs de volume du pied de page ne couvrent que les deux premiers tableaux.
+
+## Lancer
+
 ```
-git clone <ce dépôt> && cd chorus-comedy-life
-python3 server.py                  # http://127.0.0.1:8080
-python3 server.py --port 8081 --banner "TEST"      # instance de test avec bandeau rouge
+python3 server.py                               # http://127.0.0.1:8080
+python3 server.py --port 8081 --banner "TEST"   # instance de test à bandeau rouge
+outils/masteriser.sh morceau.wav sons/morceau.mp3 --debut 5 --fin 140 --fondu-sortie 6
 ```
-Ouvrir l'adresse dans Chrome ou Firefox. Le dépôt contient une liste d'exemple (`cues.json`) et des sons synthétiques libres (`sons/`).
 
-## Mettre vos morceaux
-1. Masteriser : `outils/masteriser.sh mon-morceau.wav sons/mon-morceau.mp3 --debut 5 --fin 140 --fondu-sortie 6`
-2. Décrire la liste dans `cues.json` : par tableau, `name`, `ambiance` (fichier), `ambVolume` (0 à 100) et `songs`. Chaque morceau : `name`, `file`, et facultativement `fadeIn`, `fadeOut` (secondes, 8 par défaut), `ambUnder` (ambiance en sourdine pendant le morceau), `endAt` (arrêt à telle seconde), `ambDuringIntro`, `noAmbAfter`.
-3. Les fichiers audio sont cherchés dans `sons/` (ou `--audio DOSSIER`, ou `CUE_AUDIO`). **Les morceaux du commerce sont des œuvres protégées : ne les publiez pas dans un dépôt.**
+Décrire ses tableaux dans `cues.json` (`name`, `ambiance`, `ambVolume`, `songs` ; par morceau `fadeIn`, `fadeOut`, `ambUnder`, `endAt`). Les morceaux du commerce sont des œuvres protégées : les garder hors du dépôt.
 
-## Contenu
-`cue-player.html` (la régie), `server.py` (serveur), `cues.json` (liste d'exemple), `sons/` (5 sons synthétiques), `outils/masteriser.sh`.
+---
 
-## Licences
-Code : Apache 2.0 (`LICENSE`, `NOTICE`). Textes, documentation et sons d'exemple : CC BY 4.0 (`LICENSE-docs`). Aucune dépendance.
+**Anthony Hunt** · [ingevision.cloud](https://ingevision.cloud/?p=chorus-comedy-life) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [GitHub](https://github.com/anthohunt)
 
-Auteur : Anthony Hunt.
+Code : Apache 2.0. Textes et sons d'exemple : CC BY 4.0.
