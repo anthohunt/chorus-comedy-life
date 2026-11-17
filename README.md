@@ -1,48 +1,55 @@
 **English** · [Français](README.fr.md)
 
-**Anthony Hunt** · [Project page on ingevision.cloud](https://ingevision.cloud/?lang=en&p=chorus-comedy-life) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [GitHub profile](https://github.com/anthohunt)
-
 # Chorus Comedy Life
 
-**The web sound desk of a live show: one operator, one screen, a list of songs and ambiences, and no room for error.**
+**The sound desk of a live show, in one web page: each song with its own fades, each scene with its own ambience.**
 
-A show does not stop for debugging. You have to start the next song on the director's cue, bring it down under a line of dialogue, keep an ambience running under a whole scene, and never play the wrong file. This page is driven from a laptop at the back of the room.
+[![The real desk with a demo list: the scene's ambience loops, the opening song starts, a jump into its fade-out brings the ambience back (click for the full video)](docs/demo.webp)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)
 
-![The sound desk with the sample list](assets/console.png)
+<details><summary>French version</summary>
 
-The interface is in French.
+[![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance (cliquer pour la vidéo complète)](docs/demo.fr.webp)](https://drive.google.com/file/d/1rHZzQmkFF5ZrZb7KChHvM-SEn3LiDIhD/view)
 
-## What the desk does
-- **Song list per scene**, numbered, reorderable, one click to start.
-- **Per-song fades**: fade-in and fade-out set in seconds, individually.
-- **One ambience per scene**, with its volume slider, mixed under the songs and left looping for the whole scene.
-- **Transport that behaves**: play, pause, stop, current song always visible.
-- **Everything is preloaded**: the counter shows how many files are cached; nothing is downloaded during the show.
+</details>
 
-## Design decisions
-- **Cuts happen at mastering, not at playback.** The player cannot cut a song in the middle: cuts, fades and crossfades are baked into the file (`outils/masteriser.sh`). What you hear in rehearsal is exactly what plays on the night.
-- **One loudness level**: every file is mastered to −14 LUFS, 256 kb/s, 44.1 kHz. Without a fixed target, songs from ten sources arrive at ten different levels.
-- **Two identical environments** so the tool does not break on a rehearsal day: start a second instance on another port with a red banner (`--banner "TEST"`), validate the changes, then promote them.
-- **Seeking within a song requires Range requests**: the server handles them.
+*The real desk with a demo list made for the video; synthetic sounds, silent video. [Full video (1:12)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)*
 
-## Install and run
-Requirements: Python 3.8 or later; ffmpeg for mastering (optional). No other dependency.
+## Using it
+
+- **Scenes.** One numbered list per scene: click a song, then Play.
+- **Ambience.** One loop per scene, with its volume. It fades out when a song starts and comes back during the song's fade-out.
+- **Fades.** Fade-in and fade-out in seconds for each song, shown in blue and yellow on its progress bar. A song can also stop at a set second.
+- **Playback.** Play, pause, stop; clicking the progress bar jumps within the playing song.
+- **File preparation.** `outils/masteriser.sh` cuts each file and brings it to the same loudness (−14 LUFS, 256 kb/s, 44.1 kHz), so cuts are made in the file, never live.
+
+## Architecture
+
+![Architecture: songs are cut and normalised by masteriser.sh, then dropped into sons/; server.py serves the page, cues.json and every MP3 to the desk in the browser, which reads the list and plays one song per click through the room's speakers; a test instance runs the same code with a red banner](docs/architecture.svg)
+
+<details><summary>French version</summary>
+
+![Architecture : les morceaux sont coupés et normalisés par masteriser.sh, puis déposés dans sons/ ; server.py sert la page, cues.json et tous les MP3 à la régie dans le navigateur, qui lit la liste et joue un morceau par clic sur la sono de la salle ; une instance de test fait tourner le même code avec un bandeau rouge](docs/architecture.fr.svg)
+
+</details>
+
+## Deployment
+
+- **Use.** Rehearsals of a musical, from May 2026: three scenes, each with its own ambience.
+- **Hosting.** Python service behind HTTPS on a personal server, plus a test instance with a red banner where changes were checked before going live. Taken offline on 5 November 2026 and archived.
+- **This repository.** The same desk with a sample list (`cues.json`) and four synthetic sounds (`sons/`). Python 3.8 or later, no dependency; ffmpeg only for file preparation.
+- **Limits.** The ☰ handle does not reorder songs. The Amb button has no effect: the ambience always stops under a song. The footer sliders start at 21 % and 50 % whatever `cues.json` says, and cover two scenes only. Files are downloaded when the page opens, but playback still streams them from the server.
+
+## Run it
+
 ```
-git clone <this repository> && cd chorus-comedy-life
-python3 server.py                  # http://127.0.0.1:8080
-python3 server.py --port 8081 --banner "TEST"      # test instance with a red banner
+python3 server.py
+outils/masteriser.sh in.wav sons/out.mp3
 ```
-Open the address in Chrome or Firefox. The repository contains a sample list (`cues.json`) and free synthetic sounds (`sons/`).
 
-## Adding your songs
-1. Master: `outils/masteriser.sh my-song.wav sons/my-song.mp3 --debut 5 --fin 140 --fondu-sortie 6` (start, end, fade-out, in seconds)
-2. Describe the list in `cues.json`: per scene, `name`, `ambiance` (file), `ambVolume` (0 to 100) and `songs`. Each song: `name`, `file`, and optionally `fadeIn`, `fadeOut` (seconds, 8 by default), `ambUnder` (ambience ducked during the song), `endAt` (stop at a given second), `ambDuringIntro`, `noAmbAfter`.
-3. Audio files are looked up in `sons/` (or `--audio FOLDER`, or `CUE_AUDIO`). **Commercial songs are protected works: do not publish them in a repository.**
+The desk opens at http://127.0.0.1:8080. `masteriser.sh` takes `--debut`, `--fin`, `--fondu-entree`, `--fondu-sortie` in seconds. `cues.json` holds `tableaux`, each with `name`, `ambiance`, `ambVolume` and `songs`; each song has `name` and `file`, optionally `fadeIn`, `fadeOut`, `endAt`, `noAmbAfter`. Commercial songs are protected works: keep them out of the repository.
 
-## Contents
-`cue-player.html` (the desk), `server.py` (server), `cues.json` (sample list), `sons/` (5 synthetic sounds), `outils/masteriser.sh`.
+---
 
-## Licenses
-Code: Apache 2.0 (`LICENSE`, `NOTICE`). Text, documentation and sample sounds: CC BY 4.0 (`LICENSE-docs`). No dependencies.
+**Anthony Hunt** · [ingevision.cloud](https://ingevision.cloud/?lang=en&p=chorus-comedy-life) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [GitHub](https://github.com/anthohunt)
 
-Author: Anthony Hunt.
+Code: Apache 2.0. Text and sample sounds: CC BY 4.0.
