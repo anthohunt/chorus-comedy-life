@@ -4,9 +4,15 @@
 
 **La régie son d'un spectacle, dans une page web : chaque morceau avec ses fondus, chaque tableau avec son ambiance.**
 
-[![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance (cliquer pour la vidéo complète)](docs/demo.gif)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)
+[![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance (version anglaise, cliquer pour la vidéo complète)](docs/demo.webp)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)
 
-*La vraie régie avec une liste de démonstration faite pour la vidéo ; sons synthétiques, vidéo muette. [Vidéo complète (1:12)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)*
+<details><summary>Version française</summary>
+
+[![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance (cliquer pour la vidéo complète)](docs/demo.fr.webp)](https://drive.google.com/file/d/1rHZzQmkFF5ZrZb7KChHvM-SEn3LiDIhD/view)
+
+</details>
+
+*La vraie régie avec une liste de démonstration faite pour la vidéo ; sons synthétiques, vidéo muette. [Vidéo complète (1:12)](https://drive.google.com/file/d/1rHZzQmkFF5ZrZb7KChHvM-SEn3LiDIhD/view)*
 
 ## Ce qu'on fait avec
 
