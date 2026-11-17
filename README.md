@@ -20,7 +20,11 @@
 
 ![Architecture: songs are cut and normalised by masteriser.sh, then dropped into sons/; server.py serves the page, cues.json and every MP3 to the desk in the browser, which reads the list and plays one song per click through the room's speakers; a test instance runs the same code with a red banner](docs/architecture.svg)
 
-*Diagram labels are in French.*
+<details><summary>French version</summary>
+
+![Architecture : les morceaux sont coupés et normalisés par masteriser.sh, puis déposés dans sons/ ; server.py sert la page, cues.json et tous les MP3 à la régie dans le navigateur, qui lit la liste et joue un morceau par clic sur la sono de la salle ; une instance de test fait tourner le même code avec un bandeau rouge](docs/architecture.fr.svg)
+
+</details>
 
 ## Deployment
 
