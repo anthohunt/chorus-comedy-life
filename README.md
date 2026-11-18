@@ -4,15 +4,15 @@
 
 **The sound desk of a live show, in one web page: each song with its own fades, each scene with its own ambience.**
 
-[![The real desk with a demo list: the scene's ambience loops, the opening song starts, a jump into its fade-out brings the ambience back (click for the full video)](docs/demo.webp)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)
+![The real desk with a demo list: the scene's ambience loops, the opening song starts, a jump into its fade-out brings the ambience back](docs/demo.webp)
 
 <details><summary>French version</summary>
 
-[![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance (cliquer pour la vidéo complète)](docs/demo.fr.webp)](https://drive.google.com/file/d/1rHZzQmkFF5ZrZb7KChHvM-SEn3LiDIhD/view)
+![La vraie régie avec une liste de démonstration : l'ambiance du tableau tourne, l'ouverture démarre, un saut dans son fondu de sortie fait revenir l'ambiance](docs/demo.fr.webp)
 
 </details>
 
-*The real desk with a demo list made for the video; synthetic sounds, silent video. [Full video (1:12)](https://drive.google.com/file/d/1MWjlYt6Ng0mRCqeQCAyLu0-0qvqBfsSd/view)*
+*The real desk with a demo list made for the video; synthetic sounds, silent video.*
 
 ## Using it
 
